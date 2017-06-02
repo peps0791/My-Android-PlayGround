@@ -4,7 +4,7 @@ A Health monitoring App
 
 # Project Notes
 
-Used the [Simple Graph Library](http://www.android-graphview.org/simple-graph/). Used the dependency method to add as dependency.
+Used the [Simple Graph Library](http://www.android-graphview.org/simple-graph/). Used the dependency method to add as dependency. Here is an [example for real-time integration](http://www.android-graphview.org/realtime-chart/).
 
 Note: The Graph uses a special structure defined in Graph.xml file.
 
