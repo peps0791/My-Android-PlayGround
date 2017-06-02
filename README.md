@@ -4,6 +4,12 @@ A Health monitoring App
 
 # Project Notes
 
+Used the [Simple Graph Library](http://www.android-graphview.org/simple-graph/). Used the dependency method to add as dependency.
+
+Note: The Graph uses a special structure defined in Graph.xml file.
+
+In order to run the file, first do a gradle plugin synch and then build and run the app.
+
 # @ToDo
 
 1. Write Logic to Generate Numbers
