@@ -1,71 +1,93 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.widget.RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="horizontal"
+
+    android:columnCount="2"
+    android:orientation="vertical"
+    android:paddingBottom="10dp"
+    android:paddingLeft="10dp"
+    android:paddingRight="10dp"
+    android:paddingTop="10dp"
+    android:rowCount="4"
     tools:context="com.example.theawesomeguy.group7.Monitor">
 
-    <EditText
-        android:id="@+id/editText2"
-        android:layout_width="195dp"
-        android:layout_height="66dp"
-        android:ems="10"
-        android:inputType="textPersonName"
-        android:text="Name"
-        tools:layout_editor_absoluteX="16dp"
-        tools:layout_editor_absoluteY="153dp" />
-
-    <EditText
-        android:id="@+id/editText4"
-        android:layout_width="87dp"
-        android:layout_height="56dp"
-        android:ems="10"
-        android:inputType="number"
-        android:text="ID"
-        tools:layout_editor_absoluteX="16dp"
-        tools:layout_editor_absoluteY="16dp" />
-
-    <EditText
-        android:id="@+id/editText5"
-        android:layout_width="99dp"
-        android:layout_height="56dp"
-        android:ems="10"
-        android:inputType="number"
-        android:text="Age"
-        tools:layout_editor_absoluteX="112dp"
-        tools:layout_editor_absoluteY="16dp" />
-
-    <RadioButton
-        android:id="@+id/radioButton2"
-        android:layout_width="89dp"
-        android:layout_height="56dp"
-        android:text="Male"
-        tools:layout_editor_absoluteX="16dp"
-        tools:layout_editor_absoluteY="85dp" />
-
-    <RadioButton
-        android:id="@+id/radioButton3"
-        android:layout_width="97dp"
-        android:layout_height="53dp"
-        android:text="Female"
-        tools:layout_editor_absoluteX="114dp"
-        tools:layout_editor_absoluteY="85dp" />
 
     <com.jjoe64.graphview.GraphView
-        android:layout_width="361dp"
-        android:layout_height="267dp"
         android:id="@+id/graph"
-        tools:layout_editor_absoluteY="12dp"
-        tools:layout_editor_absoluteX="224dp" />
-
-    <Switch
-        android:id="@+id/R"
-        android:layout_width="193dp"
-        android:layout_height="40dp"
-        android:text="Run"
+        android:layout_width="191dp"
+        android:layout_height="157dp"
         tools:layout_editor_absoluteX="16dp"
-        tools:layout_editor_absoluteY="232dp" />
+        tools:layout_editor_absoluteY="16dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentStart="true" />
 
-</android.support.constraint.ConstraintLayout>
+    <GridLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentStart="true">
+
+        <EditText
+            android:id="@+id/editText4"
+            android:layout_width="82dp"
+            android:layout_height="46dp"
+            android:ems="10"
+            android:inputType="number"
+            android:text="ID"
+            tools:layout_editor_absoluteX="16dp"
+            tools:layout_editor_absoluteY="454dp" />
+
+        <Switch
+            android:id="@+id/R"
+            android:layout_width="80dp"
+            android:layout_height="50dp"
+            android:text="Run"
+            tools:layout_editor_absoluteX="267dp"
+            tools:layout_editor_absoluteY="378dp" />
+
+        <EditText
+            android:id="@+id/editText2"
+            android:layout_width="126dp"
+            android:layout_height="65dp"
+            android:layout_column="0"
+            android:layout_row="1"
+            android:ems="10"
+            android:inputType="textPersonName"
+            android:text="Name"
+            tools:layout_editor_absoluteX="16dp"
+            tools:layout_editor_absoluteY="379dp" />
+
+        <RadioButton
+            android:id="@+id/radioButton3"
+            android:layout_width="wrap_content"
+            android:layout_height="63dp"
+            android:text="Female"
+            tools:layout_editor_absoluteX="189dp"
+            tools:layout_editor_absoluteY="454dp" />
+
+        <RadioButton
+            android:id="@+id/radioButton2"
+            android:layout_width="86dp"
+            android:layout_height="54dp"
+            android:text="Male"
+            tools:layout_editor_absoluteX="112dp"
+            tools:layout_editor_absoluteY="454dp" />
+
+        <EditText
+            android:id="@+id/editText5"
+            android:layout_width="107dp"
+            android:layout_height="43dp"
+            android:layout_column="2"
+            android:layout_row="0"
+            android:ems="10"
+            android:inputType="number"
+            android:text="Age"
+            tools:layout_editor_absoluteX="294dp"
+            tools:layout_editor_absoluteY="452dp" />
+    </GridLayout>
+
+</android.widget.RelativeLayout>
