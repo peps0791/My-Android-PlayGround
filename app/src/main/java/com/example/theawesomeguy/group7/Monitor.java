@@ -14,6 +14,7 @@ import android.widget.Switch;
 import android.widget.ToggleButton;
 
 import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.GridLabelRenderer;
 import com.jjoe64.graphview.Viewport;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.DataPointInterface;
@@ -54,9 +55,13 @@ public class Monitor extends AppCompatActivity {
         viewPort.setMaxX(5);
         viewPort.setScrollable(true);
 
-
+        GridLabelRenderer gridLabel = graph.getGridLabelRenderer();
+        gridLabel.setHorizontalAxisTitle("Time");
+        gridLabel.setVerticalAxisTitle("Sensor output");
+        gridLabel.setVerticalAxisTitleTextSize(35.0f);
+        gridLabel.setHorizontalAxisTitleTextSize(35.0f);
+        gridLabel.setTextSize(25.0f);
         series = new LineGraphSeries<DataPoint>();
-        //graph.addSeries(series);
 
         run.setOnClickListener( new View.OnClickListener() {
 
@@ -66,12 +71,10 @@ public class Monitor extends AppCompatActivity {
                 /***Do what you want with the click here***/
 
                 /*start new series with each run click. so it can be started from 0*/
-
                 graph.removeSeries(series);
                 series = new LineGraphSeries<DataPoint>();
                 lastX = 0;
                 graph.addSeries(series);
-
 
                 if (running_state ==0){
                     Log.d("THREAD", "run onclick listener called...");
