@@ -29,7 +29,7 @@ public class Monitor extends AppCompatActivity {
     int running_state=0;
     private LineGraphSeries<DataPoint> series;
     private static final Random generator = new Random();
-    private int lastX = 0;
+    int lastX = 0;
     Thread produce;
     private GraphView graph;
 
@@ -55,7 +55,7 @@ public class Monitor extends AppCompatActivity {
         viewPort.setScrollable(true);
 
 
-        series = new LineGraphSeries<DataPoint>();
+
 
         //graph.addSeries(series);
 
@@ -66,16 +66,19 @@ public class Monitor extends AppCompatActivity {
             public void onClick(View v) {
                 // TODO Auto-generated method stub
                 /***Do what you want with the click here***/
+                graph.addSeries(series);
                 if (running_state ==0){
+                    Log.d("THREAD", "run onclick listener called...");
                     running_state = 1;
-                    produce.start();
+
 
                 }else{
-                    running_state = 0;
+                    running_state = 1;
                     //produce.stop();
+                    Log.d("THREAD", "run onclick listener called again called...");
                     produce.interrupt();
-                    produce.start();
                 }
+                produce.start();
             }
         });
 
@@ -90,6 +93,8 @@ public class Monitor extends AppCompatActivity {
                    Log.d("THREAD", "stop onclick listener called...");
                    running_state = 0;
                    Log.d("THREAD", "thread about to be interrupted...");
+                   //lastX=0;
+                   //series = null;
                    produce.interrupt();
 
                 }
@@ -100,31 +105,35 @@ public class Monitor extends AppCompatActivity {
 
 
     private void addEntry(){
+
         series.appendData(new DataPoint(lastX++, generator.nextDouble()), true, 10);
     }
 
     @Override
     protected void onResume() {
+        series = new LineGraphSeries<DataPoint>();
         super.onResume();
-
         produce = new Thread(new Runnable() {
             @Override
             public void run() {
-                graph.addSeries(series);
-                for(int i=0;i<100;i++){
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            addEntry();
+                try {
+                    for (int i = 0;; i++) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                addEntry();
+                            }
+                        });
+                        try {
+                            Thread.sleep(200);
+                        } catch (InterruptedException ex) {
+                            Log.d("THREAD", "thread interrupted from sleep!!-->" + ex.getMessage());
+                            //graph.removeAllSeries();
+                            graph.removeSeries(series);
                         }
-                    });
-
-                    try {
-                        Thread.sleep(600);
-                    }catch(InterruptedException ex){
-                        Log.d("THREAD", "thread interrupted!!-->" + ex.getMessage());
-                        graph.removeAllSeries();
                     }
+                }catch(Exception ex){
+                    Log.d("THREAD", "thread interrupted!!-->" + ex.getMessage());
                 }
             }
         });
