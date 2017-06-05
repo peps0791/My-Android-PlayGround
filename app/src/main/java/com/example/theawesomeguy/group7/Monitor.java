@@ -35,18 +35,18 @@ public class Monitor extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_monitor);
 
-        Switch run = (Switch) findViewById(R.id.R);
+        Button run = (Button) findViewById(R.id.Run);
         RadioButton male = (RadioButton) findViewById(R.id.radioButton2);
         RadioButton female = (RadioButton) findViewById(R.id.radioButton3);
         EditText name = (EditText) findViewById(R.id.editText2);
         final EditText id = (EditText) findViewById(R.id.editText4);
-        EditText age = (EditText) findViewById(R.id.editText5);
+        EditText age = (EditText) findViewById(R.id.age);
 
         final GraphView graph = (GraphView) findViewById(R.id.graph);
         Viewport viewPort = graph.getViewport();
-        viewPort.setYAxisBoundsManual(true);
+        viewPort.setXAxisBoundsManual(true);
         viewPort.setMinX(0);
-        viewPort.setMaxY(1);
+        viewPort.setMaxX(5);
         viewPort.setScrollable(true);
 
 
@@ -62,12 +62,10 @@ public class Monitor extends AppCompatActivity {
                 // TODO Auto-generated method stub
                 /***Do what you want with the click here***/
                 if (running_state ==0){
-                    id.setText("Running...");
                     running_state = 1;
                     produce.start();
 
                 }else{
-                    id.setText("Stopping...");
                     running_state = 0;
                     produce.stop();
                 }
