@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.provider.ContactsContract;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -21,6 +22,8 @@ import com.jjoe64.graphview.series.LineGraphSeries;
 
 import java.util.Random;
 
+import static com.example.theawesomeguy.group7.R.id.graph;
+
 public class Monitor extends AppCompatActivity {
 
     int running_state=0;
@@ -28,6 +31,7 @@ public class Monitor extends AppCompatActivity {
     private static final Random generator = new Random();
     private int lastX = 0;
     Thread produce;
+    private GraphView graph;
 
 
     @Override
@@ -36,13 +40,14 @@ public class Monitor extends AppCompatActivity {
         setContentView(R.layout.activity_monitor);
 
         Button run = (Button) findViewById(R.id.Run);
+        Button stop = (Button) findViewById(R.id.Stop);
         RadioButton male = (RadioButton) findViewById(R.id.radioButton2);
         RadioButton female = (RadioButton) findViewById(R.id.radioButton3);
         EditText name = (EditText) findViewById(R.id.editText2);
         final EditText id = (EditText) findViewById(R.id.editText4);
         EditText age = (EditText) findViewById(R.id.age);
 
-        final GraphView graph = (GraphView) findViewById(R.id.graph);
+        graph = (GraphView) findViewById(R.id.graph);
         Viewport viewPort = graph.getViewport();
         viewPort.setXAxisBoundsManual(true);
         viewPort.setMinX(0);
@@ -51,7 +56,7 @@ public class Monitor extends AppCompatActivity {
 
 
         series = new LineGraphSeries<DataPoint>();
-        graph.addSeries(series);
+
         //graph.addSeries(series);
 
 
@@ -67,7 +72,26 @@ public class Monitor extends AppCompatActivity {
 
                 }else{
                     running_state = 0;
-                    produce.stop();
+                    //produce.stop();
+                    produce.interrupt();
+                    produce.start();
+                }
+            }
+        });
+
+
+        stop.setOnClickListener( new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                // TODO Auto-generated method stub
+                /***Do what you want with the click here***/
+               if(running_state==1){
+                   Log.d("THREAD", "stop onclick listener called...");
+                   running_state = 0;
+                   Log.d("THREAD", "thread about to be interrupted...");
+                   produce.interrupt();
+
                 }
             }
         });
@@ -86,6 +110,7 @@ public class Monitor extends AppCompatActivity {
         produce = new Thread(new Runnable() {
             @Override
             public void run() {
+                graph.addSeries(series);
                 for(int i=0;i<100;i++){
                     runOnUiThread(new Runnable() {
                         @Override
@@ -96,8 +121,9 @@ public class Monitor extends AppCompatActivity {
 
                     try {
                         Thread.sleep(600);
-                    }catch(Exception ex){
-                        System.out.println("exception!!" + ex.getMessage());
+                    }catch(InterruptedException ex){
+                        Log.d("THREAD", "thread interrupted!!-->" + ex.getMessage());
+                        graph.removeAllSeries();
                     }
                 }
             }

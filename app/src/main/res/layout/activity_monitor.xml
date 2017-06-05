@@ -131,13 +131,12 @@
         android:id="@+id/Run"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/button2"
-        android:layout_alignBottom="@+id/button2"
-        android:layout_toEndOf="@+id/textView2"
-        android:text="Run" />
+        android:text="Run"
+        android:layout_alignBottom="@+id/gridLayout"
+        android:layout_toEndOf="@+id/textView2" />
 
     <Button
-        android:id="@+id/button2"
+        android:id="@+id/Stop"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Stop"
