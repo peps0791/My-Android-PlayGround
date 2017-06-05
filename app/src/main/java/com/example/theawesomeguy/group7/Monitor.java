@@ -55,10 +55,8 @@ public class Monitor extends AppCompatActivity {
         viewPort.setScrollable(true);
 
 
-
-
+        series = new LineGraphSeries<DataPoint>();
         //graph.addSeries(series);
-
 
         run.setOnClickListener( new View.OnClickListener() {
 
@@ -66,7 +64,15 @@ public class Monitor extends AppCompatActivity {
             public void onClick(View v) {
                 // TODO Auto-generated method stub
                 /***Do what you want with the click here***/
+
+                /*start new series with each run click. so it can be started from 0*/
+
+                graph.removeSeries(series);
+                series = new LineGraphSeries<DataPoint>();
+                lastX = 0;
                 graph.addSeries(series);
+
+
                 if (running_state ==0){
                     Log.d("THREAD", "run onclick listener called...");
                     running_state = 1;
@@ -78,7 +84,14 @@ public class Monitor extends AppCompatActivity {
                     Log.d("THREAD", "run onclick listener called again called...");
                     produce.interrupt();
                 }
-                produce.start();
+
+                //produce.start();
+                /*start thread only if not in RUNNING state already*/
+                Log.d("THREAD", "produce thread get state-->"+ produce.getState());
+                if (produce.getState() == Thread.State.NEW ){
+                    Log.d("THREAD", "Starting new thread");
+                    produce.start();
+                }
             }
         });
 
@@ -95,23 +108,23 @@ public class Monitor extends AppCompatActivity {
                    Log.d("THREAD", "thread about to be interrupted...");
                    //lastX=0;
                    //series = null;
+                   graph.removeSeries(series);
                    produce.interrupt();
 
                 }
             }
         });
-
     }
-
 
     private void addEntry(){
 
+        Log.d("STATE", "add entry called...");
         series.appendData(new DataPoint(lastX++, generator.nextDouble()), true, 10);
     }
 
     @Override
     protected void onResume() {
-        series = new LineGraphSeries<DataPoint>();
+
         super.onResume();
         produce = new Thread(new Runnable() {
             @Override
@@ -129,7 +142,7 @@ public class Monitor extends AppCompatActivity {
                         } catch (InterruptedException ex) {
                             Log.d("THREAD", "thread interrupted from sleep!!-->" + ex.getMessage());
                             //graph.removeAllSeries();
-                            graph.removeSeries(series);
+                            //graph.removeSeries(series);
                         }
                     }
                 }catch(Exception ex){
@@ -139,11 +152,4 @@ public class Monitor extends AppCompatActivity {
         });
     }
 
-    private double[] generateRandomTuple(){
-        double[] x_y = new double[2];
-        Random generator = new Random();
-        x_y[0] = generator.nextDouble();
-        x_y[1] = generator.nextDouble();
-        return x_y;
-    }
 }
