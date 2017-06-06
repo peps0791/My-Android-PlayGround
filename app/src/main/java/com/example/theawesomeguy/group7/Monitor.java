@@ -98,10 +98,10 @@ public class Monitor extends AppCompatActivity {
                 if (produce.getState() == Thread.State.NEW ){
                     Log.d("THREAD", "Starting new thread");
                     produce.start();
-                    Snackbar.make(findViewById(android.R.id.content), "Plotting Graph.", Snackbar.LENGTH_LONG)
-                            .setActionTextColor(Color.RED)
-                            .show();
                 }
+                Snackbar.make(findViewById(android.R.id.content), "Plotting Graph.", Snackbar.LENGTH_LONG)
+                        .setActionTextColor(Color.RED)
+                        .show();
             }
         });
 
