@@ -30,7 +30,7 @@
         android:layout_height="50dp"
         android:ems="10"
         android:inputType="number"
-        android:text="Patient ID"
+        android:hint="Patient ID"
         tools:layout_editor_absoluteX="16dp"
         tools:layout_editor_absoluteY="454dp"
         android:layout_below="@+id/textView3"
@@ -46,7 +46,7 @@
         android:layout_row="1"
         android:ems="10"
         android:inputType="textPersonName"
-        android:text="Name"
+        android:hint="Name"
         tools:layout_editor_absoluteX="16dp"
         tools:layout_editor_absoluteY="379dp"
         android:layout_below="@+id/editText4"
@@ -58,7 +58,7 @@
         android:layout_height="50dp"
         android:ems="10"
         android:inputType="number"
-        android:text="Age"
+        android:hint="Age"
         android:layout_below="@+id/textView3"
         android:layout_alignEnd="@+id/textView3" />
 

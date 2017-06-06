@@ -48,6 +48,8 @@ public class Monitor extends AppCompatActivity {
         final EditText id = (EditText) findViewById(R.id.editText4);
         EditText age = (EditText) findViewById(R.id.age);
 
+
+
         graph = (GraphView) findViewById(R.id.graph);
         Viewport viewPort = graph.getViewport();
         viewPort.setXAxisBoundsManual(true);
@@ -141,7 +143,7 @@ public class Monitor extends AppCompatActivity {
                             }
                         });
                         try {
-                            Thread.sleep(200);
+                            Thread.sleep(100);
                         } catch (InterruptedException ex) {
                             Log.d("THREAD", "thread interrupted from sleep!!-->" + ex.getMessage());
                             //graph.removeAllSeries();
