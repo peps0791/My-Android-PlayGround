@@ -2,7 +2,9 @@ package com.example.theawesomeguy.group7;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.provider.ContactsContract;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -96,6 +98,9 @@ public class Monitor extends AppCompatActivity {
                 if (produce.getState() == Thread.State.NEW ){
                     Log.d("THREAD", "Starting new thread");
                     produce.start();
+                    Snackbar.make(findViewById(android.R.id.content), "Plotting Graph.", Snackbar.LENGTH_LONG)
+                            .setActionTextColor(Color.RED)
+                            .show();
                 }
             }
         });
@@ -115,6 +120,9 @@ public class Monitor extends AppCompatActivity {
                    //series = null;
                    graph.removeSeries(series);
                    produce.interrupt();
+                   Snackbar.make(findViewById(android.R.id.content), "Graph plotting stopped.", Snackbar.LENGTH_LONG)
+                           .setActionTextColor(Color.RED)
+                           .show();
 
                 }
             }
