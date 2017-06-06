@@ -42,6 +42,8 @@ public class Monitor extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_monitor);
 
+        /*Own code*/
+        /*UI component classes*/
         Button run = (Button) findViewById(R.id.Run);
         Button stop = (Button) findViewById(R.id.Stop);
         RadioButton male = (RadioButton) findViewById(R.id.radioButton2);
@@ -51,7 +53,8 @@ public class Monitor extends AppCompatActivity {
         EditText age = (EditText) findViewById(R.id.age);
 
 
-
+        /*graph set up code*/
+        /*own code*/
         graph = (GraphView) findViewById(R.id.graph);
         Viewport viewPort = graph.getViewport();
         viewPort.setXAxisBoundsManual(true);
@@ -60,13 +63,16 @@ public class Monitor extends AppCompatActivity {
         viewPort.setScrollable(true);
 
         GridLabelRenderer gridLabel = graph.getGridLabelRenderer();
-        gridLabel.setHorizontalAxisTitle("Time");
-        gridLabel.setVerticalAxisTitle("Sensor output");
+        gridLabel.setHorizontalAxisTitle("Time (in seconds)");
+        gridLabel.setVerticalAxisTitle("Sensor value (in units)");
         gridLabel.setVerticalAxisTitleTextSize(35.0f);
         gridLabel.setHorizontalAxisTitleTextSize(35.0f);
         gridLabel.setTextSize(25.0f);
         series = new LineGraphSeries<DataPoint>();
 
+
+        /*listener for run button*/
+        /*own code*/
         run.setOnClickListener( new View.OnClickListener() {
 
             @Override
@@ -106,6 +112,8 @@ public class Monitor extends AppCompatActivity {
         });
 
 
+        /*listener for stop button*/
+        /*own code*/
         stop.setOnClickListener( new View.OnClickListener() {
 
             @Override
@@ -129,8 +137,10 @@ public class Monitor extends AppCompatActivity {
         });
     }
 
-    private void addEntry(){
 
+
+    /*Code snippet from a tutorial for plotting graph*/
+    private void addEntry(){
         Log.d("STATE", "add entry called...");
         series.appendData(new DataPoint(lastX++, generator.nextDouble()), true, 10);
     }
@@ -139,6 +149,8 @@ public class Monitor extends AppCompatActivity {
     protected void onResume() {
 
         super.onResume();
+
+        /*code snippet from a tutorial for plotting graph*/
         produce = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -154,12 +166,10 @@ public class Monitor extends AppCompatActivity {
                             Thread.sleep(200);
                         } catch (InterruptedException ex) {
                             Log.d("THREAD", "thread interrupted from sleep!!-->" + ex.getMessage());
-                            //graph.removeAllSeries();
-                            //graph.removeSeries(series);
                         }
                     }
                 }catch(Exception ex){
-                    Log.d("THREAD", "thread interrupted!!-->" + ex.getMessage());
+                    Log.d("THREAD", "Exception!-->" + ex.getMessage());
                 }
             }
         });
