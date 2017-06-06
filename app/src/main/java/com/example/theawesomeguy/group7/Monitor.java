@@ -143,7 +143,7 @@ public class Monitor extends AppCompatActivity {
                             }
                         });
                         try {
-                            Thread.sleep(100);
+                            Thread.sleep(200);
                         } catch (InterruptedException ex) {
                             Log.d("THREAD", "thread interrupted from sleep!!-->" + ex.getMessage());
                             //graph.removeAllSeries();
