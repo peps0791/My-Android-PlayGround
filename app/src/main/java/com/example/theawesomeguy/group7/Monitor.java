@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.Toast;
 
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GridLabelRenderer;
@@ -85,6 +86,7 @@ public class Monitor extends AppCompatActivity {
                 /***Do what you want with the click here***/
 
                 /*start new series with each run click. so it can be started from 0*/
+
                 graph.removeSeries(series);
                 series = new LineGraphSeries<DataPoint>();
                 lastX = 0;
@@ -103,7 +105,7 @@ public class Monitor extends AppCompatActivity {
                 }
 
                 //produce.start();
-                /*start thread only if not in RUNNING state already*/
+                //start thread only if not in RUNNING state already
                 Log.d("THREAD", "produce thread get state-->"+ produce.getState());
                 if (produce.getState() == Thread.State.NEW ){
                     Log.d("THREAD", "Starting new thread");
@@ -112,6 +114,11 @@ public class Monitor extends AppCompatActivity {
                 Snackbar.make(findViewById(android.R.id.content), "Plotting Graph.", Snackbar.LENGTH_LONG)
                         .setActionTextColor(Color.RED)
                         .show();
+
+                stopService(intent);
+
+                dbHelper.fetchData();
+                Toast.makeText(Monitor.this, "Please enter a Age", Toast.LENGTH_LONG).show();
             }
         });
 
@@ -230,8 +237,8 @@ public class Monitor extends AppCompatActivity {
                     String name = nameField.getText().toString();
 
                     String table_name = name + Constants.DELIMITER + id + Constants.DELIMITER  +age;
-                    dbHelper.createTable(table_name);
 
+                    dbHelper.createTable(table_name);
                     startAccService();
                 }
 

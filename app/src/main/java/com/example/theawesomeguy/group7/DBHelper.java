@@ -1,6 +1,7 @@
 package com.example.theawesomeguy.group7;
 
 import android.content.ContentValues;
+import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
@@ -10,6 +11,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import java.io.File;
+import java.util.ArrayList;
 
 /**
  * Created by peps on 6/17/17.
@@ -145,5 +147,19 @@ public class DBHelper {
         return false;
     }
 
-    public
+    public void fetchData(){
+
+        Log.d(Constants.CUSTOM_LOG_TYPE, "fetch data function called");
+        Cursor cur = db.rawQuery("SELECT * FROM " + DBHelper.tableName, null);
+        ArrayList temp = new ArrayList();
+        if (cur != null) {
+            if (cur.moveToFirst()) {
+                do {
+                    String timestamp = cur.getString(cur.getColumnIndex("timestamp"));
+                    Log.d(Constants.CUSTOM_LOG_TYPE, "timestamp values->" +timestamp);
+                    temp.add(timestamp);
+                } while (cur.moveToNext());
+            }
+        }
+    }
 }

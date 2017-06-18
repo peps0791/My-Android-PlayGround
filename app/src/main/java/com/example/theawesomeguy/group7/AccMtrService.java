@@ -6,6 +6,8 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.util.Log;
 
 import java.util.concurrent.TimeUnit;
@@ -19,6 +21,8 @@ public class AccMtrService  extends IntentService implements SensorEventListener
 
     private SensorManager sensorManager;
     private DBHelper dbHelper= null;
+    private HandlerThread mSensorThread;
+    private Handler mSensorHandler;
 
     public AccMtrService(){
         super("AccMtrService");
@@ -59,8 +63,12 @@ public class AccMtrService  extends IntentService implements SensorEventListener
     @Override
     protected void onHandleIntent(Intent intent) {
 
+        mSensorThread = new HandlerThread("Sensor thread", Thread.MAX_PRIORITY);
+        mSensorThread.start();
+        mSensorHandler = new Handler(mSensorThread.getLooper()); //Blocks until looper is prepared, which is fairly quick
+
         sensorManager=(SensorManager) getSystemService(SENSOR_SERVICE);
-        sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL, mSensorHandler);
         Log.d(Constants.CUSTOM_LOG_TYPE, "ON handle intent");
     }
 }
