@@ -19,4 +19,15 @@ public class Constants {
     public static String DBNAME = "group7_DB";
 
     public static String DELIMITER = "_";
+
+    public static String MALE_RADIO_BTN_TXT = "MALE";
+    public static String FEMALE_RADIO_BTN_TXT= "FEMALE";
+
+    public static int SENSOR_1HZ_DELAY = 1000000;
+
+    public static String CUSTOM_LOG_TYPE = "GROUP7-LOGS";
+
+
+
+
 }

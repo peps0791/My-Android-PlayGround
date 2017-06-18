@@ -5,13 +5,13 @@ import android.graphics.Color;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
+import android.widget.RadioGroup;
+
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GridLabelRenderer;
 import com.jjoe64.graphview.Viewport;
@@ -34,6 +34,9 @@ public class Monitor extends AppCompatActivity {
     EditText ageField = null;
     EditText idField = null;
     EditText nameField = null;
+    RadioGroup radioGroup = null;
+    Intent intent  = null;
+    String sex = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,11 +47,10 @@ public class Monitor extends AppCompatActivity {
         /*UI component classes*/
         Button runBtn = (Button) findViewById(R.id.Run);
         Button stopBtn = (Button) findViewById(R.id.Stop);
-        RadioButton maleRadioBtn = (RadioButton) findViewById(R.id.radioButton2);
-        RadioButton femaleRadioBtn = (RadioButton) findViewById(R.id.radioButton3);
         nameField = (EditText) findViewById(R.id.editText2);
         idField = (EditText) findViewById(R.id.editText4);
         ageField = (EditText) findViewById(R.id.age);
+        radioGroup = (RadioGroup) findViewById(R.id.radioGroup);
 
         /*Own code*/
         /*DB set up code*/
@@ -72,6 +74,7 @@ public class Monitor extends AppCompatActivity {
         series = new LineGraphSeries<DataPoint>();
 
 
+        intent = new Intent(this, AccMtrService.class);
         /*listener for run button*/
         /*own code*/
         runBtn.setOnClickListener( new View.OnClickListener() {
@@ -138,12 +141,13 @@ public class Monitor extends AppCompatActivity {
         });
 
 
-        nameField.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+
+        /*nameField.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if(!hasFocus){
                     //check for texts in id, name and sex fields
-                    Log.d("LOGGING", "focus lost called in name field");
+                    Log.d(Constants.CUSTOM_LOG_TYPE, "focus lost called in name field");
                     if (areFieldsNotEmpty()){
                         //create table
 
@@ -151,8 +155,14 @@ public class Monitor extends AppCompatActivity {
                         String id = idField.getText().toString();
                         String name = nameField.getText().toString();
 
-                        String table_name = age + Constants.DELIMITER + id + Constants.DELIMITER + name;
+                        String table_name = name + Constants.DELIMITER + id + Constants.DELIMITER  +age;
                         dbHelper.createTable(table_name);
+
+
+                        //TODO: a better approach
+                        //start service to initiate accelerometer
+                       startAccService();
+
                     }
                 }
             }
@@ -163,10 +173,14 @@ public class Monitor extends AppCompatActivity {
             public void onFocusChange(View v, boolean hasFocus) {
                 if(!hasFocus){
                     //check for texts in id, name and sex fields
-                    Log.d("LOGGING", "focus lost called in age field");
+                    Log.d(Constants.CUSTOM_LOG_TYPE, "focus lost called in age field");
                     if (areFieldsNotEmpty()){
                         //create table
                         dbHelper.createTable("TABLE NAME");
+
+                        //TODO: a better approach
+                        //start service to initiate accelerometer
+                        //startAccService();
                     }
                 }
             }
@@ -177,14 +191,58 @@ public class Monitor extends AppCompatActivity {
             public void onFocusChange(View v, boolean hasFocus) {
                 if(!hasFocus){
                     //check for texts in id, name and sex fields
-                    Log.d("LOGGING", "focus lost called in id field");
+                    Log.d(Constants.CUSTOM_LOG_TYPE, "focus lost called in id field");
                     if (areFieldsNotEmpty()){
                         //create table
                         dbHelper.createTable("TABLE NAME");
+
+                        //TODO: a better approach
+                        //start service to initiate accelerometer
+                        startAccService();
                     }
                 }
             }
+        });*/
+
+
+        radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener()
+        {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                // checkedId is the RadioButton selected
+                RadioButton rb=(RadioButton)findViewById(checkedId);
+                Log.d(Constants.CUSTOM_LOG_TYPE, "You Selected "+rb.getText());
+                //Toast.makeText(getApplicationContext(), rb.getText(), Toast.LENGTH_SHORT).show()
+
+                if(rb.getText().equals(Constants.MALE_RADIO_BTN_TXT)){
+                    sex = "M";
+
+                }else if(rb.getText().equals(Constants.FEMALE_RADIO_BTN_TXT)){
+                    sex = "F";
+                }
+
+                if(areFieldsNotEmpty()){
+
+                    //create table
+
+                    String age = ageField.getText().toString();
+                    String id = idField.getText().toString();
+                    String name = nameField.getText().toString();
+
+                    String table_name = name + Constants.DELIMITER + id + Constants.DELIMITER  +age;
+                    dbHelper.createTable(table_name);
+
+                    startAccService();
+                }
+
+            }
         });
+    }
+
+
+    /*start service to fetch values from the accelerometer*/
+    private void startAccService(){
+        startService(intent);
 
     }
 
@@ -192,7 +250,8 @@ public class Monitor extends AppCompatActivity {
     private boolean areFieldsNotEmpty(){
         return (ageField!=null && !ageField.getText().toString().isEmpty() &&
                 idField!=null && !idField.getText().toString().isEmpty() &&
-                nameField!=null && !nameField.getText().toString().isEmpty());
+                nameField!=null && !nameField.getText().toString().isEmpty() &&
+                radioGroup.getCheckedRadioButtonId()!=-1);
     }
 
     /*Code snippet from a tutorial for plotting graph*/
