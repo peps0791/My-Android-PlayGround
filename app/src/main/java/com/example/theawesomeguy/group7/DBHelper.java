@@ -12,6 +12,7 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by peps on 6/17/17.
@@ -25,49 +26,52 @@ public class DBHelper {
     private static SQLiteDatabase db;
 
     private static String tableName = null;
-    private static int isDBWritten = 0;
 
-    public DBHelper() {
+    private static DBHelper dbHelper = null;
+
+
+    public static DBHelper getInstance(){
+        if (dbHelper==null){
+            dbHelper = new DBHelper();
+        }
+        return dbHelper;
+    }
+
+
+    private DBHelper() {
         //default constructor
+        try {
+            Log.d(Constants.CUSTOM_LOG_TYPE, "External Storage state ->" + isExternalStorageWritable());
+            //create directory CSE535_ASSIGNMENT2 if it doesn't exist already
+            sdCardPath = Environment.getExternalStorageDirectory().getAbsolutePath();
+            Log.d(Constants.CUSTOM_LOG_TYPE, "sdcard path-->" + sdCardPath);
 
-        //TODO: make this a singleton
+            dbDir = Constants.DB_DIRECTORY_NAME;
+            Log.d(Constants.CUSTOM_LOG_TYPE, "db Directory-->" + dbDir);
 
-        if (isDBWritten == 0) {
-            try {
-                Log.d(Constants.CUSTOM_LOG_TYPE, "External Storage state ->" + isExternalStorageWritable());
-                //create directory CSE535_ASSIGNMENT2 if it doesn't exist already
-                sdCardPath = Environment.getExternalStorageDirectory().getAbsolutePath();
-                Log.d(Constants.CUSTOM_LOG_TYPE, "sdcard path-->" + sdCardPath);
+            String dbPath = sdCardPath + File.separator + dbDir;
+            Log.d(Constants.CUSTOM_LOG_TYPE, "db Directory-->" + dbDir);
 
-                dbDir = Constants.DB_DIRECTORY_NAME;
-                Log.d(Constants.CUSTOM_LOG_TYPE, "db Directory-->" + dbDir);
+            dbDirFilePath = new File(dbPath);
+            if (dbDirFilePath.exists() && dbDirFilePath.isDirectory()) {
+                Log.d(Constants.CUSTOM_LOG_TYPE, "db directory already exists");
+            } else {
+                Log.d(Constants.CUSTOM_LOG_TYPE, "Creating  DB directory");
+                boolean dirCreated = dbDirFilePath.mkdirs();
 
-                String dbPath = sdCardPath + File.separator + dbDir;
-                Log.d(Constants.CUSTOM_LOG_TYPE, "db Directory-->" + dbDir);
-
-                dbDirFilePath = new File(dbPath);
-                if (dbDirFilePath.exists() && dbDirFilePath.isDirectory()) {
-                    Log.d(Constants.CUSTOM_LOG_TYPE, "db directory already exists");
-                } else {
-                    Log.d(Constants.CUSTOM_LOG_TYPE, "Creating  DB directory");
-                    boolean dirCreated = dbDirFilePath.mkdirs();
-
-                    Log.d(Constants.CUSTOM_LOG_TYPE, "is directory created ?" + dirCreated);
-                    if (!dirCreated) {
-                        throw new Exception("Cant write to the storage. check!!!");
-                    }
+                Log.d(Constants.CUSTOM_LOG_TYPE, "is directory created ?" + dirCreated);
+                if (!dirCreated) {
+                    throw new Exception("Cant write to the storage. check!!!");
                 }
-
-
-                db = SQLiteDatabase.openOrCreateDatabase(dbPath + File.separator + Constants.DBNAME, null);
-                Log.d(Constants.CUSTOM_LOG_TYPE, "DB created successfully");
-                isDBWritten = 1;
-            } catch (Exception ex) {
-                Log.d(Constants.CUSTOM_LOG_TYPE, "Exception while creating DB->" + ex.getMessage());
-                ex.printStackTrace();
             }
-        }else{
-            Log.d(Constants.CUSTOM_LOG_TYPE, "DB Not going to be created again...");
+
+
+            db = SQLiteDatabase.openOrCreateDatabase(dbPath + File.separator + Constants.DBNAME, null);
+            Log.d(Constants.CUSTOM_LOG_TYPE, "DB created successfully");
+
+        } catch (Exception ex) {
+            Log.d(Constants.CUSTOM_LOG_TYPE, "Exception while creating DB->" + ex.getMessage());
+            ex.printStackTrace();
         }
 
     }
@@ -147,7 +151,7 @@ public class DBHelper {
         return false;
     }
 
-    public void fetchData(){
+    public List<Float> fetchData(){
 
         Log.d(Constants.CUSTOM_LOG_TYPE, "fetch data function called");
         Cursor cur = db.rawQuery("SELECT * FROM " + DBHelper.tableName, null);
@@ -155,11 +159,14 @@ public class DBHelper {
         if (cur != null) {
             if (cur.moveToFirst()) {
                 do {
-                    String timestamp = cur.getString(cur.getColumnIndex("timestamp"));
-                    Log.d(Constants.CUSTOM_LOG_TYPE, "timestamp values->" +timestamp);
+                    String timestamp = cur.getString(cur.getColumnIndex("x_val"));
+                    Log.d(Constants.CUSTOM_LOG_TYPE, "x values->" +timestamp);
                     temp.add(timestamp);
                 } while (cur.moveToNext());
             }
         }
+
+        Log.d(Constants.CUSTOM_LOG_TYPE, "number of rows fetched-->" + temp.size());
+        return temp;
     }
 }

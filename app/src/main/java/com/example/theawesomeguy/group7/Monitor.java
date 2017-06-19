@@ -18,6 +18,8 @@ import com.jjoe64.graphview.GridLabelRenderer;
 import com.jjoe64.graphview.Viewport;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
+
+import java.util.List;
 import java.util.Random;
 import com.example.theawesomeguy.group7.Constants;
 
@@ -36,8 +38,9 @@ public class Monitor extends AppCompatActivity {
     EditText idField = null;
     EditText nameField = null;
     RadioGroup radioGroup = null;
-    Intent intent  = null;
     String sex = null;
+
+    List<Float> dbXValues;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,7 +58,7 @@ public class Monitor extends AppCompatActivity {
 
         /*Own code*/
         /*DB set up code*/
-        dbHelper = new DBHelper();
+        dbHelper = DBHelper.getInstance();
 
         /*graph set up code*/
         /*own code*/
@@ -74,8 +77,6 @@ public class Monitor extends AppCompatActivity {
         gridLabel.setTextSize(Constants.AXIS_TITLE_TEXT_SIZE);
         series = new LineGraphSeries<DataPoint>();
 
-
-        intent = new Intent(this, AccMtrService.class);
         /*listener for run button*/
         /*own code*/
         runBtn.setOnClickListener( new View.OnClickListener() {
@@ -93,32 +94,31 @@ public class Monitor extends AppCompatActivity {
                 graph.addSeries(series);
 
                 if (running_state ==Constants.RUNNING_STATE_OFF){
-                    Log.d("THREAD", "run onclick listener called...");
+                    Log.d(Constants.CUSTOM_LOG_TYPE, "run onclick listener called...");
                     running_state = Constants.RUNNING_STATE_ON;
-
 
                 }else{
                     running_state = Constants.RUNNING_STATE_ON;
                     //produce.stop();
-                    Log.d("THREAD", "run onclick listener called again called...");
+                    Log.d(Constants.CUSTOM_LOG_TYPE, "run onclick listener called again called...");
                     produce.interrupt();
                 }
 
                 //produce.start();
                 //start thread only if not in RUNNING state already
-                Log.d("THREAD", "produce thread get state-->"+ produce.getState());
+                Log.d(Constants.CUSTOM_LOG_TYPE, "produce thread get state-->"+ produce.getState());
                 if (produce.getState() == Thread.State.NEW ){
-                    Log.d("THREAD", "Starting new thread");
+                    Log.d(Constants.CUSTOM_LOG_TYPE, "Starting new thread");
                     produce.start();
                 }
                 Snackbar.make(findViewById(android.R.id.content), "Plotting Graph.", Snackbar.LENGTH_LONG)
                         .setActionTextColor(Color.RED)
                         .show();
 
-                stopService(intent);
+                Log.d(Constants.CUSTOM_LOG_TYPE, "calling stop service");
+                //stopService(new Intent(this, AccMtrService.class));
 
-                dbHelper.fetchData();
-                Toast.makeText(Monitor.this, "Please enter a Age", Toast.LENGTH_LONG).show();
+                dbXValues = dbHelper.fetchData();
             }
         });
 
@@ -249,7 +249,7 @@ public class Monitor extends AppCompatActivity {
 
     /*start service to fetch values from the accelerometer*/
     private void startAccService(){
-        startService(intent);
+        startService(new Intent(this, AccMtrService.class));
 
     }
 
@@ -262,9 +262,9 @@ public class Monitor extends AppCompatActivity {
     }
 
     /*Code snippet from a tutorial for plotting graph*/
-    private void addEntry(){
-        Log.d("STATE", "add entry called...");
-        series.appendData(new DataPoint(lastX++, generator.nextDouble()), true, 10);
+    private void addEntry(float val){
+        Log.d(Constants.CUSTOM_LOG_TYPE, "custom entry called...");
+        series.appendData(new DataPoint(lastX++, (double)val), true, 10);
     }
 
     @Override
@@ -277,24 +277,24 @@ public class Monitor extends AppCompatActivity {
             @Override
             public void run() {
                 try {
-                    for (int i = 0;; i++) {
+                    for (int i = 0; i< dbXValues.size(); i++) {
+                        final float val = dbXValues.get(i);
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                addEntry();
+                                addEntry(val);
                             }
                         });
                         try {
                             Thread.sleep(200);
                         } catch (InterruptedException ex) {
-                            Log.d("THREAD", "thread interrupted from sleep!!-->" + ex.getMessage());
+                            Log.d(Constants.CUSTOM_LOG_TYPE, "thread interrupted from sleep!!-->" + ex.getMessage());
                         }
                     }
                 }catch(Exception ex){
-                    Log.d("THREAD", "Exception!-->" + ex.getMessage());
+                    Log.d(Constants.CUSTOM_LOG_TYPE, "Exception!-->" + ex.getMessage());
                 }
             }
         });
     }
-
 }

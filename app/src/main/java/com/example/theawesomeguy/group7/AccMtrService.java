@@ -26,10 +26,9 @@ public class AccMtrService  extends IntentService implements SensorEventListener
 
     public AccMtrService(){
         super("AccMtrService");
-        dbHelper = new DBHelper();
+        dbHelper = DBHelper.getInstance();
 
     }
-
 
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
@@ -60,6 +59,15 @@ public class AccMtrService  extends IntentService implements SensorEventListener
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
     }
+
+    /*@Override
+    public void onDestroy(){
+        Log.d(Constants.CUSTOM_LOG_TYPE,"Service stopped");
+        sensorManager.unregisterListener(this);
+        mSensorThread.quitSafely();
+    }*/
+
+
     @Override
     protected void onHandleIntent(Intent intent) {
 
