@@ -16,12 +16,13 @@ In order to run the file, first do a gradle plugin synch and then build and run 
 2. accelerometer integration -> working.
 3. accelerometer values storage in DB -> working
 4. accelerometer values retreival from DB -> working
+5. fields validation -> working.
+6. table creation on filling fields(name, sex, age, id) in any order.
 
 # @Kinks
 
 1. sampling frequency -> delay implemented for 1 second. still not perfectly fine.
 2. DB file and folder get created on the emulator, but not on device. 
-3. table should get created on flling up the fields in any order. Not sure if thats working. 
  
 
 # @ToDo
