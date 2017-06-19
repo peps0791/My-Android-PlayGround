@@ -1,7 +1,9 @@
 package com.example.theawesomeguy.group7;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.Environment;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -19,6 +21,7 @@ import com.jjoe64.graphview.Viewport;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
+import java.io.File;
 import java.util.List;
 import java.util.Random;
 import java.util.regex.Matcher;
@@ -35,6 +38,7 @@ public class Monitor extends AppCompatActivity {
     int lastX = 0;
     Thread produce;
     private GraphView graph;
+    UploadsHelper uploadsHelper;
     DBHelper dbHelper;
 
     EditText ageField = null;
@@ -42,6 +46,7 @@ public class Monitor extends AppCompatActivity {
     EditText nameField = null;
     RadioGroup radioGroup = null;
     String sex = null;
+
 
     List<Float> dbXValues;
     int inputInvalid = Constants.INPUT_VALID;
@@ -55,6 +60,7 @@ public class Monitor extends AppCompatActivity {
         /*UI component classes*/
         Button runBtn = (Button) findViewById(R.id.Run);
         Button stopBtn = (Button) findViewById(R.id.Stop);
+        Button uploadBtn = (Button) findViewById(R.id.Upload);
         nameField = (EditText) findViewById(R.id.editText2);
         idField = (EditText) findViewById(R.id.editText4);
         ageField = (EditText) findViewById(R.id.age);
@@ -63,6 +69,11 @@ public class Monitor extends AppCompatActivity {
         /*Own code*/
         /*DB set up code*/
         dbHelper = DBHelper.getInstance();
+        uploadsHelper = UploadsHelper.getInstance();
+
+        uploadsHelper.setUploadServerURI(Constants.uploadServerUri);
+        uploadsHelper.setUploadFile(Environment.getExternalStorageDirectory() +
+                File.separator + Constants.DB_DIRECTORY_NAME + File.separator + Constants.DBNAME);
 
         /*graph set up code*/
         /*own code*/
@@ -243,6 +254,29 @@ public class Monitor extends AppCompatActivity {
 
             }
         });
+
+        uploadBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                Toast.makeText(Monitor.this,  "Uploading file...", Toast.LENGTH_LONG).show();
+
+
+                new Thread(new Runnable() {
+                    public void run() {
+                        runOnUiThread(new Runnable() {
+                            public void run() {
+                                Log.d(Constants.CUSTOM_LOG_TYPE, "Upload started");
+                            }
+                        });
+
+                        uploadsHelper.uploadFile();
+
+                    }
+                }).start();
+            }
+        });
+
     }
 
 

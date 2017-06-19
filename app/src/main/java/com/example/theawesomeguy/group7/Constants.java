@@ -43,4 +43,6 @@ public class Constants {
     public static String DATA_OK_START_ACCMTR_MSG = "Data Stored. Starting Accelerometer.";
     public static String DATA_NOT_OK_MSG = "One of the fields is invalid. Data cannot be stored until correct!";
 
+    public static String uploadServerUri = "https://impact.asu.edu/CSE535Spring17Folder/UploadToServer.php";
+
 }
