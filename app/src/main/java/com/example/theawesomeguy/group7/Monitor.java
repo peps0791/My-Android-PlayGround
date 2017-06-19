@@ -21,6 +21,9 @@ import com.jjoe64.graphview.series.LineGraphSeries;
 
 import java.util.List;
 import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import com.example.theawesomeguy.group7.Constants;
 
 
@@ -41,6 +44,7 @@ public class Monitor extends AppCompatActivity {
     String sex = null;
 
     List<Float> dbXValues;
+    int inputInvalid = Constants.INPUT_VALID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -150,27 +154,21 @@ public class Monitor extends AppCompatActivity {
 
         //See kink #3. table creation should be checked for after editing every field. Not being done right now.
 
-        /*nameField.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+        nameField.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if(!hasFocus){
-                    //check for texts in id, name and sex fields
-                    Log.d(Constants.CUSTOM_LOG_TYPE, "focus lost called in name field");
-                    if (areFieldsNotEmpty()){
-                        //create table
+                    //check if the name is a text and not numeric
+                    if(!Misc.isFieldValid(nameField, Constants.NAME_TYPE)){
+                        Toast.makeText(Monitor.this, Constants.INVALID_NAME__ERROR, Toast.LENGTH_LONG).show();
+                    }
 
-                        String age = ageField.getText().toString();
-                        String id = idField.getText().toString();
-                        String name = nameField.getText().toString();
-
-                        String table_name = name + Constants.DELIMITER + id + Constants.DELIMITER  +age;
-                        dbHelper.createTable(table_name);
-
-
-                        //TODO: a better approach
-                        //start service to initiate accelerometer
-                       startAccService();
-
+                    if(areFieldsNotEmpty() && areFieldsValid()) {
+                        createTable();
+                        Toast.makeText(Monitor.this, Constants.DATA_OK_START_ACCMTR_MSG, Toast.LENGTH_LONG).show();
+                        startAccService();
+                    }else{
+                        Log.d(Constants.CUSTOM_LOG_TYPE, Constants.DATA_NOT_OK_MSG);
                     }
                 }
             }
@@ -181,15 +179,18 @@ public class Monitor extends AppCompatActivity {
             public void onFocusChange(View v, boolean hasFocus) {
                 if(!hasFocus){
                     //check for texts in id, name and sex fields
-                    Log.d(Constants.CUSTOM_LOG_TYPE, "focus lost called in age field");
-                    if (areFieldsNotEmpty()){
-                        //create table
-                        dbHelper.createTable("TABLE NAME");
-
-                        //TODO: a better approach
-                        //start service to initiate accelerometer
-                        //startAccService();
+                    if(!Misc.isFieldValid(ageField, Constants.AGE_TYPE)){
+                        Toast.makeText(Monitor.this, Constants.INVALID_AGE__ERROR, Toast.LENGTH_LONG).show();
                     }
+
+                    if(areFieldsNotEmpty() && areFieldsValid()) {
+                        createTable();
+                        Toast.makeText(Monitor.this, Constants.DATA_OK_START_ACCMTR_MSG, Toast.LENGTH_LONG).show();
+                        startAccService();
+                    }else{
+                        Log.d(Constants.CUSTOM_LOG_TYPE, Constants.DATA_NOT_OK_MSG);
+                    }
+
                 }
             }
         });
@@ -199,18 +200,21 @@ public class Monitor extends AppCompatActivity {
             public void onFocusChange(View v, boolean hasFocus) {
                 if(!hasFocus){
                     //check for texts in id, name and sex fields
-                    Log.d(Constants.CUSTOM_LOG_TYPE, "focus lost called in id field");
-                    if (areFieldsNotEmpty()){
-                        //create table
-                        dbHelper.createTable("TABLE NAME");
-
-                        //TODO: a better approach
-                        //start service to initiate accelerometer
-                        startAccService();
+                    if(!Misc.isFieldValid(idField, Constants.ID_TYPE)){
+                        Toast.makeText(Monitor.this, Constants.INVALID_ID__ERROR, Toast.LENGTH_LONG).show();
                     }
+
+                    if(areFieldsNotEmpty() && areFieldsValid()) {
+                        createTable();
+                        Toast.makeText(Monitor.this, Constants.DATA_OK_START_ACCMTR_MSG, Toast.LENGTH_LONG).show();
+                        startAccService();
+                    }else{
+                        Log.d(Constants.CUSTOM_LOG_TYPE, Constants.DATA_NOT_OK_MSG);
+                    }
+
                 }
             }
-        });*/
+        });
 
 
         radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener()
@@ -229,18 +233,12 @@ public class Monitor extends AppCompatActivity {
                     sex = "F";
                 }
 
-                if(areFieldsNotEmpty()){
-
-                    //create table
-
-                    String age = ageField.getText().toString();
-                    String id = idField.getText().toString();
-                    String name = nameField.getText().toString();
-
-                    String table_name = name + Constants.DELIMITER + id + Constants.DELIMITER  +age;
-
-                    dbHelper.createTable(table_name);
+                if(areFieldsNotEmpty() && areFieldsValid()) {
+                    createTable();
+                    Toast.makeText(Monitor.this, Constants.DATA_OK_START_ACCMTR_MSG, Toast.LENGTH_LONG).show();
                     startAccService();
+                }else{
+                    Log.d(Constants.CUSTOM_LOG_TYPE, Constants.DATA_NOT_OK_MSG);
                 }
 
             }
@@ -260,6 +258,26 @@ public class Monitor extends AppCompatActivity {
                 idField!=null && !idField.getText().toString().isEmpty() &&
                 nameField!=null && !nameField.getText().toString().isEmpty() &&
                 radioGroup.getCheckedRadioButtonId()!=-1);
+    }
+
+
+    private boolean areFieldsValid(){
+        return( Misc.isFieldValid(nameField, Constants.NAME_TYPE) &&
+                Misc.isFieldValid(ageField, Constants.AGE_TYPE) &&
+        Misc.isFieldValid(idField, Constants.ID_TYPE));
+    }
+
+
+    private void createTable(){
+
+        String age = ageField.getText().toString();
+        String id = idField.getText().toString();
+        String name = nameField.getText().toString();
+
+        String table_name = name + Constants.DELIMITER + id + Constants.DELIMITER  +age;
+
+        dbHelper.createTable(table_name);
+
     }
 
     /*Code snippet from a tutorial for plotting graph*/
