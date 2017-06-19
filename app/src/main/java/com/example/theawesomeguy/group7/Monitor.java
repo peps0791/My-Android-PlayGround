@@ -148,6 +148,7 @@ public class Monitor extends AppCompatActivity {
         });
 
 
+        //See kink #3. table creation should be checked for after editing every field. Not being done right now.
 
         /*nameField.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
