@@ -219,6 +219,42 @@ public class Monitor extends AppCompatActivity {
 
                         //need to switch the database
 
+                        dbHelper.switchToDownloadDB();
+
+                        // TODO here create three series elements, each for X,Y, Z to plot on the same graph. Look at logic for same.
+                        graph.removeSeries(series1);
+                        graph.removeSeries(series2);
+                        graph.removeSeries(series3);
+                        series1 = new LineGraphSeries<DataPoint>();
+                        series2 = new LineGraphSeries<DataPoint>();
+                        series3 = new LineGraphSeries<DataPoint>();
+                        lastX = 0;
+                        graph.addSeries(series1);
+                        graph.addSeries(series2);
+                        graph.addSeries(series3);
+
+                        if (running_state ==0){
+                            Log.d("THREAD", "run onclick listener called...");
+                            running_state = 1;
+
+
+                        }else{
+                            running_state = 1;
+                            //produce.stop();
+                            Log.d("THREAD", "run onclick listener called again called...");
+                            produce.interrupt();
+                        }
+
+                        //produce.start();
+                /*start thread only if not in RUNNING state already*/
+                        Log.d("THREAD", "produce thread get state-->"+ produce.getState());
+                        if (produce.getState() == Thread.State.NEW ){
+                            Log.d("THREAD", "Starting new thread");
+                            produce.start();
+                        }
+                        Snackbar.make(findViewById(android.R.id.content), "Plotting Graph.", Snackbar.LENGTH_LONG)
+                                .setActionTextColor(Color.RED)
+                                .show();
 
                     }
                 }).start();
@@ -437,27 +473,30 @@ public class Monitor extends AppCompatActivity {
 
         //Cursor c = myDB.rawQuery("SELECT * FROM "+ tableName , null);
         Cursor c = dbHelper.fetchData();
-        if(c.moveToFirst()){
-            do{
-                String datetime = c.getString(0);
+        if (c!=null){
+            if(c.moveToFirst()){
+                do{
+                    String datetime = c.getString(0);
 
-                try{
-                    d1= dateFormat.parse(datetime); //from DB
-                    d2= dateFormat.parse(datetimeTimeStamp); //current date
-                }
-                catch (Exception e){
-                    Log.e("Date Time formatting", datetime);
-                }
-                if((d2.getTime() - d1.getTime())/1000 % 60 <=10)
-                    break;
+                    try{
+                        d1= dateFormat.parse(datetime); //from DB
+                        d2= dateFormat.parse(datetimeTimeStamp); //current date
+                    }
+                    catch (Exception e){
+                        Log.e("Date Time formatting", datetime);
+                    }
+                    if((d2.getTime() - d1.getTime())/1000 % 60 <=10)
+                        break;
 
-            }while (c.moveToNext());
-            Log.d("DB Entry", c.getString(0) + c.getString(1)+c.getString(2)+c.getString(3));
+                }while (c.moveToNext());
+                Log.d("DB Entry", c.getString(0) + c.getString(1)+c.getString(2)+c.getString(3));
+            }
+
+            series1.appendData(new DataPoint(lastX++, Double.parseDouble(c.getString(1)) ), true, 10);
+            series2.appendData(new DataPoint(lastX++, Double.parseDouble(c.getString(2))), true, 10);
+            series3.appendData(new DataPoint(lastX++, Double.parseDouble(c.getString(3))), true, 10);
         }
 
-        series1.appendData(new DataPoint(lastX++, Double.parseDouble(c.getString(1)) ), true, 10);
-        series2.appendData(new DataPoint(lastX++, Double.parseDouble(c.getString(2))), true, 10);
-        series3.appendData(new DataPoint(lastX++, Double.parseDouble(c.getString(3))), true, 10);
     }
 
     @Override

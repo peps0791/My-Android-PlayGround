@@ -48,9 +48,9 @@ public class Constants {
 
 
     //remote server
-    public static String UPLOAD_SERVER_FOLDER = "https://impact.asu.edu/CSE535Spring17Folder";
+    /*public static String UPLOAD_SERVER_FOLDER = "https://impact.asu.edu/CSE535Spring17Folder";
     public static String UPLOAD_URI= "UploadToServer.php";
-    public static String UPLOAD_SERVER_URI = UPLOAD_SERVER_FOLDER + File.separator + UPLOAD_URI;
+    public static String UPLOAD_SERVER_URI = UPLOAD_SERVER_FOLDER + File.separator + UPLOAD_URI;*/
 
 
     //local node js server
@@ -59,8 +59,8 @@ public class Constants {
     public static String uploadServerUri = "http://10.143.3.163:3030/upload";*/
 
     //local apache php server
-    /*public static String UPLOAD_SERVER_FOLDER = "http://10.143.3.163/uploads/";
-    public static String UPLOAD_SERVER_URI= "http://10.143.3.163/upload.php";*/
+    public static String UPLOAD_SERVER_FOLDER = "http://10.143.3.163/uploads/";
+    public static String UPLOAD_SERVER_URI= "http://10.143.3.163/upload.php";
     //public static String uploadServerUri = "http://10.143.3.163:3030/upload";
 
 

@@ -39,8 +39,19 @@ public class DBHelper {
         }
         return dbHelper;
     }
+    
+
+    public void switchToDownloadDB(){
 
 
+        //download location
+        String downloadLoc = Environment.getExternalStorageDirectory() + File.separator +
+                Constants.DB_DIRECTORY_NAME_DOWNLOAD + File.separator + Constants.DBNAME;
+
+        db = SQLiteDatabase.openOrCreateDatabase(downloadLoc, null);
+
+
+    }
     private DBHelper() {
         //default constructor
         try {
@@ -216,7 +227,14 @@ public class DBHelper {
 
         Log.d(Constants.CUSTOM_LOG_TYPE, "fetch data function called on table name ->");
 
-        Cursor cur = db.rawQuery("SELECT * FROM " + DBHelper.tableName, null);
+            if (DBHelper.tableName != null) {
+                Cursor cur = db.rawQuery("SELECT * FROM " + DBHelper.tableName, null);
+                return cur;
+            } else {
+                return null;
+            }
+
+
         /*ArrayList temp = new ArrayList();
 
         if (cur != null) {
@@ -230,6 +248,6 @@ public class DBHelper {
         }
 
         Log.d(Constants.CUSTOM_LOG_TYPE, "number of rows fetched-->" + temp.size());*/
-        return cur;
+
     }
 }

@@ -56,10 +56,10 @@ public class DownloadsHelper {
 
             Log.d(Constants.CUSTOM_LOG_TYPE, "download file path->" + downloadPath + File.separator + Constants.DBNAME);
             FileChannel out = new FileOutputStream(
-                    downloadPath + File.separator + Constants.DBNAME + "1").getChannel();
+                    downloadPath + File.separator + Constants.DBNAME).getChannel();
             long size = (new File(Environment.getExternalStorageDirectory() + File.separator + Constants.DB_DIRECTORY_NAME + File.separator + Constants.DBNAME)).length();
             out.transferFrom(in, 0, size);
-            File newFile = new File(downloadPath + File.separator + Constants.DBNAME + "1");
+            File newFile = new File(downloadPath + File.separator + Constants.DBNAME);
             if(newFile.exists()){
                 Log.d(Constants.CUSTOM_LOG_TYPE, "downloaded file size->" +newFile.length());
             }
