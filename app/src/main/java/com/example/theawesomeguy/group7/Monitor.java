@@ -101,13 +101,14 @@ public class Monitor extends AppCompatActivity {
 
 
         /**
-         * TODO Write Logic for creating a DB at a specific location
-         * TODO Write logic to see if all entries are filled
-         * TODO Write logic to create table when above condition satisifies
-         * TODO Write logic to stop the listener once the table has been created to avoid bugs
-         * TODO Write a service to get Acc data at certain frequencies
-         * TODO Write logic to pull last 10 sec data and plot it
-         * TODO Update above to read every second (Thread or whatever)
+         * TODOS
+         * TODO Write Logic for creating a DB at a specific location -- still location part pending
+         *  Write logic to see if all entries are filled -- done
+         * Write logic to create table when above condition satisifies
+         * Write logic to stop the listener once the table has been created to avoid bugs
+         * Write a service to get Acc data at certain frequencies
+         * Write logic to pull last 10 sec data and plot it
+         * Update above to read every second  -- Done by original series listener
          */
 
         //Step 1, check if folder exists, if yes, remove all tables in it, if not, create folder -- No
