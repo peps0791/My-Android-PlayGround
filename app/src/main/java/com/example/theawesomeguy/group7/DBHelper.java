@@ -39,7 +39,7 @@ public class DBHelper {
         }
         return dbHelper;
     }
-    
+
 
     public void switchToDownloadDB(){
 

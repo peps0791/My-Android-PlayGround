@@ -1,6 +1,10 @@
 package com.example.theawesomeguy.group7;
 
+import android.Manifest;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
@@ -16,6 +20,8 @@ import android.os.Handler;
 import android.provider.ContactsContract;
 import android.support.annotation.IdRes;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -52,6 +58,7 @@ import static com.example.theawesomeguy.group7.R.id.graph;
 public class Monitor extends AppCompatActivity {
 
     int running_state=0;
+    int MY_PERMISSIONS_WRITE_EXTERNAL_STORAGE = 10;
     private LineGraphSeries<DataPoint> series1;
     private LineGraphSeries<DataPoint> series2;
     private LineGraphSeries<DataPoint> series3;
@@ -87,6 +94,45 @@ public class Monitor extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_monitor);
+
+
+
+
+        // Here, thisActivity is the current activity
+        if (ContextCompat.checkSelfPermission(Monitor.this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(Monitor.this,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+
+                // Show an explanation to the user *asynchronously* -- don't block
+                // this thread waiting for the user's response! After the user
+                // sees the explanation, try again to request the permission.
+
+                showMessageOKCancel("You need to allow access to External Storage",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                                        MY_PERMISSIONS_WRITE_EXTERNAL_STORAGE);
+                            }
+                        });
+
+            } else {
+
+                // No explanation needed, we can request the permission.
+
+                ActivityCompat.requestPermissions(Monitor.this,
+                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        MY_PERMISSIONS_WRITE_EXTERNAL_STORAGE);
+
+                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
+                // app-defined int constant. The callback method gets the
+                // result of the request.
+            }
+        }
 
         /*Own code*/
         /*UI component classes*/
@@ -365,96 +411,20 @@ public class Monitor extends AppCompatActivity {
         });
 
 
-        nameField.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if(!hasFocus){
-                    //check if the name is a text and not numeric
-                    if(!Misc.isFieldValid(nameField, Constants.NAME_TYPE)){
-                        Toast.makeText(Monitor.this, Constants.INVALID_NAME__ERROR, Toast.LENGTH_LONG).show();
-                    }
 
-                    if(areFieldsNotEmpty() && areFieldsValid()) {
-                        //createTable();
-                        Toast.makeText(Monitor.this, Constants.DATA_OK_START_ACCMTR_MSG, Toast.LENGTH_LONG).show();
-                        //startAccService();
-                    }else{
-                        Log.d(Constants.CUSTOM_LOG_TYPE, Constants.DATA_NOT_OK_MSG);
-                    }
-                }
-            }
-        });
+    }
 
-        ageField.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if(!hasFocus){
-                    //check for texts in id, name and sex fields
-                    if(!Misc.isFieldValid(ageField, Constants.AGE_TYPE)){
-                        Toast.makeText(Monitor.this, Constants.INVALID_AGE__ERROR, Toast.LENGTH_LONG).show();
-                    }
-
-                    if(areFieldsNotEmpty() && areFieldsValid()) {
-                        //createTable();
-                        Toast.makeText(Monitor.this, Constants.DATA_OK_START_ACCMTR_MSG, Toast.LENGTH_LONG).show();
-                        //startAccService();
-                    }else{
-                        Log.d(Constants.CUSTOM_LOG_TYPE, Constants.DATA_NOT_OK_MSG);
-                    }
-
-                }
-            }
-        });
-
-        idField.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if(!hasFocus){
-                    //check for texts in id, name and sex fields
-                    if(!Misc.isFieldValid(idField, Constants.ID_TYPE)){
-                        Toast.makeText(Monitor.this, Constants.INVALID_ID__ERROR, Toast.LENGTH_LONG).show();
-                    }
-
-                    if(areFieldsNotEmpty() && areFieldsValid()) {
-                        //createTable();
-                        Toast.makeText(Monitor.this, Constants.DATA_OK_START_ACCMTR_MSG, Toast.LENGTH_LONG).show();
-                        //startAccService();
-                    }else{
-                        Log.d(Constants.CUSTOM_LOG_TYPE, Constants.DATA_NOT_OK_MSG);
-                    }
-
-                }
-            }
-        });
+    private void showMessageOKCancel(String message, DialogInterface.OnClickListener okListener) {
+        new AlertDialog.Builder(Monitor.this)
+                .setMessage(message)
+                .setPositiveButton("OK", okListener)
+                .setNegativeButton("Cancel", null)
+                .create()
+                .show();
     }
 
 
-    private boolean areFieldsValid(){
-        return( Misc.isFieldValid(nameField, Constants.NAME_TYPE) &&
-                Misc.isFieldValid(ageField, Constants.AGE_TYPE) &&
-                Misc.isFieldValid(idField, Constants.ID_TYPE));
-    }
 
-
-    /*code snippet to check if the age, name, sex and id fields are empty or not*/
-    private boolean areFieldsNotEmpty(){
-        return (ageField!=null && !ageField.getText().toString().isEmpty() &&
-                idField!=null && !idField.getText().toString().isEmpty() &&
-                nameField!=null && !nameField.getText().toString().isEmpty() &&
-                gender.getCheckedRadioButtonId()!=-1);
-    }
-
-    /*private void createTable(){
-
-        String age = ageField.getText().toString();
-        String id = idField.getText().toString();
-        String name = nameField.getText().toString();
-
-        String table_name = name + Constants.DELIMITER + id + Constants.DELIMITER  +age;
-
-        dbHelper.createTable(table_name);
-
-    }*/
 
     /*Code snippet from a tutorial for plotting graph*/
     private void addEntry(){
