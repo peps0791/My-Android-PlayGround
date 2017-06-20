@@ -102,7 +102,10 @@ public class Monitor extends AppCompatActivity {
 
         /**
          * TODOS
+         *
          * TODO Write Logic for creating a DB at a specific location -- still location part pending
+         * TODO upload
+         * TODO Download
          *  Write logic to see if all entries are filled -- done
          * Write logic to create table when above condition satisifies
          * Write logic to stop the listener once the table has been created to avoid bugs
