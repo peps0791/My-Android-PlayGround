@@ -1,5 +1,7 @@
 package com.example.theawesomeguy.group7;
 
+import java.io.File;
+
 /**
  * Created by peps on 6/17/17.
  */
@@ -16,7 +18,8 @@ public class Constants {
     public static int RUNNING_STATE_ON = 1;
 
     public static String DB_DIRECTORY_NAME = "CSE535_ASSIGNMENT2";
-    public static String DBNAME = "group7_DB";
+    public static String DB_DIRECTORY_NAME_DOWNLOAD = "CSE535_ASSIGNMENT2_Extra";
+    public static String DBNAME = "group7";
 
     public static String DELIMITER = "_";
 
@@ -43,6 +46,23 @@ public class Constants {
     public static String DATA_OK_START_ACCMTR_MSG = "Data Stored. Starting Accelerometer.";
     public static String DATA_NOT_OK_MSG = "One of the fields is invalid. Data cannot be stored until correct!";
 
-    public static String uploadServerUri = "https://impact.asu.edu/CSE535Spring17Folder/UploadToServer.php";
+
+    //remote server
+    public static String UPLOAD_SERVER_FOLDER = "https://impact.asu.edu/CSE535Spring17Folder";
+    public static String UPLOAD_URI= "UploadToServer.php";
+    public static String UPLOAD_SERVER_URI = UPLOAD_SERVER_FOLDER + File.separator + UPLOAD_URI;
+
+
+    //local node js server
+    /*public static String UPLOAD_SERVER_FOLDER = "http://10.143.3.163:3030/img/";
+    public static String UPLOAD_SERVER_URI= "http://10.143.3.163:3030/upload";
+    public static String uploadServerUri = "http://10.143.3.163:3030/upload";*/
+
+    //local apache php server
+    /*public static String UPLOAD_SERVER_FOLDER = "http://10.143.3.163/uploads/";
+    public static String UPLOAD_SERVER_URI= "http://10.143.3.163/upload.php";*/
+    //public static String uploadServerUri = "http://10.143.3.163:3030/upload";
+
+
 
 }

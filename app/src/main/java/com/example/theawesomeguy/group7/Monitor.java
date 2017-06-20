@@ -40,6 +40,7 @@ public class Monitor extends AppCompatActivity {
     private GraphView graph;
     UploadsHelper uploadsHelper;
     DBHelper dbHelper;
+    DownloadsHelper downloadsHelper;
 
     EditText ageField = null;
     EditText idField = null;
@@ -61,6 +62,7 @@ public class Monitor extends AppCompatActivity {
         Button runBtn = (Button) findViewById(R.id.Run);
         Button stopBtn = (Button) findViewById(R.id.Stop);
         Button uploadBtn = (Button) findViewById(R.id.Upload);
+        Button downloadBtn = (Button) findViewById(R.id.Download);
         nameField = (EditText) findViewById(R.id.editText2);
         idField = (EditText) findViewById(R.id.editText4);
         ageField = (EditText) findViewById(R.id.age);
@@ -71,7 +73,10 @@ public class Monitor extends AppCompatActivity {
         dbHelper = DBHelper.getInstance();
         uploadsHelper = UploadsHelper.getInstance();
 
-        uploadsHelper.setUploadServerURI(Constants.uploadServerUri);
+        downloadsHelper = DownloadsHelper.getInstance();
+
+
+        uploadsHelper.setUploadServerURI(Constants.UPLOAD_SERVER_URI);
         uploadsHelper.setUploadFile(Environment.getExternalStorageDirectory() +
                 File.separator + Constants.DB_DIRECTORY_NAME + File.separator + Constants.DBNAME);
 
@@ -271,6 +276,28 @@ public class Monitor extends AppCompatActivity {
                         });
 
                         uploadsHelper.uploadFile();
+
+                    }
+                }).start();
+            }
+        });
+
+        downloadBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                Toast.makeText(Monitor.this,  "Uploading file...", Toast.LENGTH_LONG).show();
+
+
+                new Thread(new Runnable() {
+                    public void run() {
+                        runOnUiThread(new Runnable() {
+                            public void run() {
+                                Log.d(Constants.CUSTOM_LOG_TYPE, "Upload started");
+                            }
+                        });
+
+                       downloadsHelper.download();
 
                     }
                 }).start();

@@ -123,6 +123,14 @@
         android:layout_toEndOf="@+id/Stop"
         android:layout_marginStart="13dp" />
 
+    <Button
+        android:id="@+id/Download"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Download"
+        android:layout_alignBottom="@+id/graph"
+        android:layout_alignStart="@+id/messageText" />
+
     <com.jjoe64.graphview.GraphView
         android:id="@+id/graph"
         android:layout_width="200dp"
@@ -149,10 +157,11 @@
         android:id="@+id/messageText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/Run"
-        android:layout_alignTop="@+id/graph"
         android:text="TextView"
-        android:layout_alignBottom="@+id/gridLayout"
+        android:layout_alignBottom="@+id/Download"
+        android:layout_alignStart="@+id/Run"
+        android:layout_marginBottom="79dp"
+        android:layout_alignTop="@+id/graph"
         android:layout_toStartOf="@+id/Stop" />
 
 </android.widget.RelativeLayout>
