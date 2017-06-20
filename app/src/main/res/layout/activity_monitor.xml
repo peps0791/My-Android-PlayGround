@@ -128,8 +128,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Download"
-        android:layout_alignBottom="@+id/graph"
-        android:layout_alignStart="@+id/messageText" />
+        android:layout_below="@+id/Run"
+        android:layout_toEndOf="@+id/Run" />
 
     <com.jjoe64.graphview.GraphView
         android:id="@+id/graph"
@@ -140,7 +140,9 @@
         tools:layout_editor_absoluteX="16dp"
         tools:layout_editor_absoluteY="40dp"
         android:layout_alignBottom="@+id/gridLayout"
-        android:layout_toEndOf="@+id/editText4" />
+        android:layout_toEndOf="@+id/Download"
+        android:layout_below="@+id/Download"
+        android:layout_alignStart="@+id/Run" />
 
     <TextView
         android:id="@+id/textView3"
@@ -152,16 +154,5 @@
         android:text="Enter the Patient Info"
         android:textColor="#000000"
         android:textSize="25dp" />
-
-    <TextView
-        android:id="@+id/messageText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="TextView"
-        android:layout_alignBottom="@+id/Download"
-        android:layout_alignStart="@+id/Run"
-        android:layout_marginBottom="79dp"
-        android:layout_alignTop="@+id/graph"
-        android:layout_toStartOf="@+id/Stop" />
 
 </android.widget.RelativeLayout>

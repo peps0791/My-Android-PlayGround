@@ -68,6 +68,7 @@ public class Monitor extends AppCompatActivity {
     RadioButton maleRadioBtn;
     RadioButton femaleRadioBtn ;
     Button uploadBtn;
+    Button downloadBtn;
     EditText nameField;
     EditText idField ;
     EditText ageField;
@@ -80,6 +81,7 @@ public class Monitor extends AppCompatActivity {
 
     DBHelper dbHelper;
     UploadsHelper uploadsHelper;
+    DownloadsHelper downloadsHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,6 +93,7 @@ public class Monitor extends AppCompatActivity {
         Button runBtn = (Button) findViewById(R.id.Run);
         Button stopBtn = (Button) findViewById(R.id.Stop);
         uploadBtn =  (Button) findViewById(R.id.Upload);
+        downloadBtn =  (Button) findViewById(R.id.Download);
         RadioButton maleRadioBtn = (RadioButton) findViewById(R.id.radioButton2);
         RadioButton femaleRadioBtn = (RadioButton) findViewById(R.id.radioButton3);
         nameField = (EditText) findViewById(R.id.editText2);
@@ -132,6 +135,7 @@ public class Monitor extends AppCompatActivity {
          */
         dbHelper = DBHelper.getInstance();
 
+        downloadsHelper = DownloadsHelper.getInstance();
         uploadsHelper = UploadsHelper.getInstance();
 
         uploadsHelper.setUploadServerURI(Constants.UPLOAD_SERVER_URI);
@@ -192,6 +196,32 @@ public class Monitor extends AppCompatActivity {
 
                 }
 
+            }
+        });
+
+
+        downloadBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                Toast.makeText(Monitor.this,  "Uploading file...", Toast.LENGTH_LONG).show();
+
+
+                new Thread(new Runnable() {
+                    public void run() {
+                        runOnUiThread(new Runnable() {
+                            public void run() {
+                                Log.d(Constants.CUSTOM_LOG_TYPE, "Upload started");
+                            }
+                        });
+
+                        downloadsHelper.download();
+
+                        //need to switch the database
+
+
+                    }
+                }).start();
             }
         });
 
