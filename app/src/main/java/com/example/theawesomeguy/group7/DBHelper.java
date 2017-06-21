@@ -41,6 +41,9 @@ public class DBHelper {
     }
 
 
+    public boolean isTableSet(){
+        return (tableName !=null);
+    }
     private DBHelper() {
         //default constructor
         try {
@@ -95,7 +98,7 @@ public class DBHelper {
 
         }
         catch (Exception e){
-            Log.d("Table create issue", e.toString());
+            Log.d(Constants.CUSTOM_LOG_TYPE, e.toString());
         }
 
     }
@@ -109,7 +112,7 @@ public class DBHelper {
             Date date = new Date();
             datetimeTimeStamp = dateFormat.format(date);
             String query="INSERT INTO "+ DBHelper.tableName+"(timestamp, x, y, z) VALUES( '"+datetimeTimeStamp+"',"+String.valueOf(x)+","+String.valueOf(y)+","+String.valueOf(z)+")";
-            Log.v("Query ", query);
+            Log.d(Constants.CUSTOM_LOG_TYPE, query);
             db.execSQL(query);
         }
         catch (Exception e){
@@ -117,6 +120,18 @@ public class DBHelper {
         }
     }
 
+
+    public void switchToDownloadDB(){
+
+
+        //download location
+        String downloadLoc = Environment.getExternalStorageDirectory() + File.separator +
+                Constants.DB_DIRECTORY_NAME_DOWNLOAD + File.separator + Constants.DBNAME;
+
+        db = SQLiteDatabase.openOrCreateDatabase(downloadLoc, null);
+
+
+    }
 
     public void createTable(String tableName){
         //tableName = "testtable";
@@ -214,22 +229,15 @@ public class DBHelper {
 
     public Cursor fetchData(){
 
-        Log.d(Constants.CUSTOM_LOG_TYPE, "fetch data function called on table name ->");
+        Log.d(Constants.CUSTOM_LOG_TYPE, "fetch data function called on table name ->" + tableName);
 
-        Cursor cur = db.rawQuery("SELECT * FROM " + DBHelper.tableName, null);
-        /*ArrayList temp = new ArrayList();
-
-        if (cur != null) {
-            if (cur.moveToFirst()) {
-                do {
-                    String timestamp = cur.getString(cur.getColumnIndex("x_val"));
-                    Log.d(Constants.CUSTOM_LOG_TYPE, "x values->" +timestamp);
-                    temp.add(timestamp);
-                } while (cur.moveToNext());
-            }
+        try {
+            Cursor cur = db.rawQuery("SELECT * FROM " + DBHelper.tableName, null);
+            return cur;
+        }catch(Exception ex){
+            ex.printStackTrace();
+            Log.d(Constants.CUSTOM_LOG_TYPE, ex.getMessage());
         }
-
-        Log.d(Constants.CUSTOM_LOG_TYPE, "number of rows fetched-->" + temp.size());*/
-        return cur;
+        return null;
     }
 }

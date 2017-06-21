@@ -1,6 +1,9 @@
 package com.example.theawesomeguy.group7;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
@@ -16,6 +19,9 @@ import android.os.Handler;
 import android.provider.ContactsContract;
 import android.support.annotation.IdRes;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -61,6 +67,8 @@ public class Monitor extends AppCompatActivity {
     private GraphView graph;
     File outDir;
     SQLiteDatabase myDB;
+    int MY_PERMISSIONS_WRITE_EXTERNAL_STORAGE = 10;
+    String maleOrFemale;
 
 
     Button runBtn;
@@ -87,6 +95,43 @@ public class Monitor extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_monitor);
+
+
+        // Here, thisActivity is the current activity
+        if (ContextCompat.checkSelfPermission(Monitor.this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(Monitor.this,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+
+                // Show an explanation to the user *asynchronously* -- don't block
+                // this thread waiting for the user's response! After the user
+                // sees the explanation, try again to request the permission.
+
+                showMessageOKCancel("You need to allow access to External Storage",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                                        MY_PERMISSIONS_WRITE_EXTERNAL_STORAGE);
+                            }
+                        });
+
+            } else {
+
+                // No explanation needed, we can request the permission.
+
+                ActivityCompat.requestPermissions(Monitor.this,
+                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        MY_PERMISSIONS_WRITE_EXTERNAL_STORAGE);
+
+                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
+                // app-defined int constant. The callback method gets the
+                // result of the request.
+            }
+        }
 
         /*Own code*/
         /*UI component classes*/
@@ -150,7 +195,6 @@ public class Monitor extends AppCompatActivity {
                 if( nameField.getText()!=null && ageField.getText()!= null && idField.getText()!=null){
 
                     //gender has been selected, do your thing
-                    String maleOrFemale = "";
                     if (gender.getCheckedRadioButtonId()==0){
                         maleOrFemale="f";
                     }
@@ -158,42 +202,14 @@ public class Monitor extends AppCompatActivity {
                         maleOrFemale="m";
                     }
 
-                    tableName = nameField.getText().toString()+"_"+idField.getText().toString()+"_"+ageField.getText().toString()+"_"+maleOrFemale;
-                    Log.v("Done", tableName);
-                    dbHelper.createTableWhenConditionsMet(tableName);
 
-                    //Step 3, Create Table, Stop Validation Listener
-
-                    gender.setOnCheckedChangeListener(null);
-
-                    //Step 4, Service to store Data at 1GHZ
-                    mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-                    mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-
-                    mSensorManager.registerListener(new SensorEventListener() {
-
-                        // Use the accelerometer.
-                        @Override
-                        public void onSensorChanged(SensorEvent event) {
-
-
-                            //Create the thread with 1 second pause
-                            float x = event.values[0];
-                            float y = event.values[1];
-                            float z = event.values[2];
-
-                            dbHelper.insertInTable(x,y,z);
-                        }
-
-                        @Override
-                        public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
-                            //Do nothing
-                            //Log.d("Sensor changed", name.getText().toString());
-
-                        }
-                    }, mSensor, 1000000);
-
+                    if(areFieldsNotEmpty() && areFieldsValid()){
+                        //Step 3, Create Table, Stop Validation Listener
+                        createTable();
+                        gender.setOnCheckedChangeListener(null);
+                        //Step 4, Service to store Data at 1GHZ
+                        startAccService();
+                    }
                 }
 
             }
@@ -218,7 +234,7 @@ public class Monitor extends AppCompatActivity {
                         downloadsHelper.download();
 
                         //need to switch the database
-
+                        dbHelper.switchToDownloadDB();
 
                     }
                 }).start();
@@ -277,27 +293,37 @@ public class Monitor extends AppCompatActivity {
                 graph.addSeries(series3);
 
                 if (running_state ==0){
-                    Log.d("THREAD", "run onclick listener called...");
+                    Log.d(Constants.CUSTOM_LOG_TYPE, "run onclick listener called...");
                     running_state = 1;
 
 
                 }else{
                     running_state = 1;
                     //produce.stop();
-                    Log.d("THREAD", "run onclick listener called again called...");
+                    Log.d(Constants.CUSTOM_LOG_TYPE, "run onclick listener called again called...");
                     produce.interrupt();
                 }
 
                 //produce.start();
                 /*start thread only if not in RUNNING state already*/
-                Log.d("THREAD", "produce thread get state-->"+ produce.getState());
-                if (produce.getState() == Thread.State.NEW ){
-                    Log.d("THREAD", "Starting new thread");
-                    produce.start();
+                Log.d(Constants.CUSTOM_LOG_TYPE, "produce thread get state-->"+ produce.getState());
+                if (produce.getState() == Thread.State.NEW){
+
+                    if(dbHelper.isTableSet()){
+                        Log.d(Constants.CUSTOM_LOG_TYPE, "Starting new thread");
+                        produce.start();
+
+                        Snackbar.make(findViewById(android.R.id.content), "Plotting Graph.", Snackbar.LENGTH_LONG)
+                                .setActionTextColor(Color.RED)
+                                .show();
+                    }else{
+                        Snackbar.make(findViewById(android.R.id.content), "Cant plot graph.", Snackbar.LENGTH_LONG)
+                                .setActionTextColor(Color.RED)
+                                .show();
+                    }
+
                 }
-                Snackbar.make(findViewById(android.R.id.content), "Plotting Graph.", Snackbar.LENGTH_LONG)
-                        .setActionTextColor(Color.RED)
-                        .show();
+
             }
         });
 
@@ -339,9 +365,9 @@ public class Monitor extends AppCompatActivity {
                     }
 
                     if(areFieldsNotEmpty() && areFieldsValid()) {
-                        //createTable();
+                        createTable();
                         Toast.makeText(Monitor.this, Constants.DATA_OK_START_ACCMTR_MSG, Toast.LENGTH_LONG).show();
-                        //startAccService();
+                        startAccService();
                     }else{
                         Log.d(Constants.CUSTOM_LOG_TYPE, Constants.DATA_NOT_OK_MSG);
                     }
@@ -359,9 +385,9 @@ public class Monitor extends AppCompatActivity {
                     }
 
                     if(areFieldsNotEmpty() && areFieldsValid()) {
-                        //createTable();
+                        createTable();
                         Toast.makeText(Monitor.this, Constants.DATA_OK_START_ACCMTR_MSG, Toast.LENGTH_LONG).show();
-                        //startAccService();
+                        startAccService();
                     }else{
                         Log.d(Constants.CUSTOM_LOG_TYPE, Constants.DATA_NOT_OK_MSG);
                     }
@@ -380,9 +406,9 @@ public class Monitor extends AppCompatActivity {
                     }
 
                     if(areFieldsNotEmpty() && areFieldsValid()) {
-                        //createTable();
+                        createTable();
                         Toast.makeText(Monitor.this, Constants.DATA_OK_START_ACCMTR_MSG, Toast.LENGTH_LONG).show();
-                        //startAccService();
+                        startAccService();
                     }else{
                         Log.d(Constants.CUSTOM_LOG_TYPE, Constants.DATA_NOT_OK_MSG);
                     }
@@ -408,21 +434,64 @@ public class Monitor extends AppCompatActivity {
                 gender.getCheckedRadioButtonId()!=-1);
     }
 
-    /*private void createTable(){
+    private void createTable(){
 
+        Log.d(Constants.CUSTOM_LOG_TYPE, "Creating DB table.");
         String age = ageField.getText().toString();
         String id = idField.getText().toString();
         String name = nameField.getText().toString();
 
-        String table_name = name + Constants.DELIMITER + id + Constants.DELIMITER  +age;
+        String table_name = name + Constants.DELIMITER + id + Constants.DELIMITER  +age + Constants.DELIMITER + maleOrFemale;
 
-        dbHelper.createTable(table_name);
+        //dbHelper.createTable(table_name);
+        dbHelper.createTableWhenConditionsMet(table_name);
 
-    }*/
+    }
+
+
+
+    private void startAccService(){
+
+        Log.d(Constants.CUSTOM_LOG_TYPE, "Starting Acclerometer service");
+        mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+
+        mSensorManager.registerListener(new SensorEventListener() {
+
+            // Use the accelerometer.
+            @Override
+            public void onSensorChanged(SensorEvent event) {
+
+
+                //Create the thread with 1 second pause
+                float x = event.values[0];
+                float y = event.values[1];
+                float z = event.values[2];
+
+                dbHelper.insertInTable(x,y,z);
+            }
+
+            @Override
+            public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+                //Do nothing
+                //Log.d("Sensor changed", name.getText().toString());
+
+            }
+        }, mSensor, 1000000);
+
+    }
+    private void showMessageOKCancel(String message, DialogInterface.OnClickListener okListener) {
+        new AlertDialog.Builder(Monitor.this)
+                .setMessage(message)
+                .setPositiveButton("OK", okListener)
+                .setNegativeButton("Cancel", null)
+                .create()
+                .show();
+    }
 
     /*Code snippet from a tutorial for plotting graph*/
     private void addEntry(){
-
 
         // get time right now
 
@@ -437,27 +506,30 @@ public class Monitor extends AppCompatActivity {
 
         //Cursor c = myDB.rawQuery("SELECT * FROM "+ tableName , null);
         Cursor c = dbHelper.fetchData();
-        if(c.moveToFirst()){
-            do{
-                String datetime = c.getString(0);
+        if(c!=null){
+            if(c.moveToFirst()){
+                do{
+                    String datetime = c.getString(0);
 
-                try{
-                    d1= dateFormat.parse(datetime); //from DB
-                    d2= dateFormat.parse(datetimeTimeStamp); //current date
-                }
-                catch (Exception e){
-                    Log.e("Date Time formatting", datetime);
-                }
-                if((d2.getTime() - d1.getTime())/1000 % 60 <=10)
-                    break;
+                    try{
+                        d1= dateFormat.parse(datetime); //from DB
+                        d2= dateFormat.parse(datetimeTimeStamp); //current date
+                    }
+                    catch (Exception e){
+                        Log.e("Date Time formatting", datetime);
+                    }
+                    if((d2.getTime() - d1.getTime())/1000 % 60 <=10)
+                        break;
 
-            }while (c.moveToNext());
-            Log.d("DB Entry", c.getString(0) + c.getString(1)+c.getString(2)+c.getString(3));
+                }while (c.moveToNext());
+                Log.d(Constants.CUSTOM_LOG_TYPE, c.getString(0) + c.getString(1)+c.getString(2)+c.getString(3));
+            }
+
+            series1.appendData(new DataPoint(lastX++, Double.parseDouble(c.getString(1)) ), true, 10);
+            series2.appendData(new DataPoint(lastX++, Double.parseDouble(c.getString(2))), true, 10);
+            series3.appendData(new DataPoint(lastX++, Double.parseDouble(c.getString(3))), true, 10);
         }
 
-        series1.appendData(new DataPoint(lastX++, Double.parseDouble(c.getString(1)) ), true, 10);
-        series2.appendData(new DataPoint(lastX++, Double.parseDouble(c.getString(2))), true, 10);
-        series3.appendData(new DataPoint(lastX++, Double.parseDouble(c.getString(3))), true, 10);
     }
 
     @Override
