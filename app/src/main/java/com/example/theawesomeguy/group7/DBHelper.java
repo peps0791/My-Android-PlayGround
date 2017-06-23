@@ -1,10 +1,12 @@
 package com.example.theawesomeguy.group7;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Environment;
 import android.os.SystemClock;
 import android.util.Log;
@@ -21,7 +23,7 @@ import java.util.Locale;
  * Created by peps on 6/17/17.
  */
 
-public class DBHelper {
+public class DBHelper extends SQLiteOpenHelper {
 
     String sdCardPath = null;
     String dbDir = null;
@@ -32,21 +34,50 @@ public class DBHelper {
 
     private static DBHelper dbHelper = null;
 
+    @Override
+    public void onUpgrade(SQLiteDatabase db,
+                          int oldVersion,
+                          int newVersion){
 
-    public static DBHelper getInstance(){
+        Log.d(Constants.CUSTOM_LOG_TYPE, "OnUpgrade");
+
+    }
+
+    @Override
+    public void onCreate(SQLiteDatabase db){
+
+        Log.d(Constants.CUSTOM_LOG_TYPE, "OnCreate");
+
+    }
+
+    public static DBHelper getInstance(Context ctx){
         if (dbHelper==null){
-            dbHelper = new DBHelper();
+            dbHelper = new DBHelper(ctx.getApplicationContext());
         }
         return dbHelper;
     }
 
-
     public boolean isTableSet(){
         return (tableName !=null);
     }
-    private DBHelper() {
+
+
+    public SQLiteDatabase getDBInstance(){
+
+        String dbPath = Environment.getExternalStorageDirectory() + File.separator + Constants.DB_DIRECTORY_NAME;
+        if(this.db == null){
+            this.db = SQLiteDatabase.openOrCreateDatabase(dbPath + File.separator + Constants.DBNAME, null);
+        }
+        return this.db;
+    }
+
+
+    private DBHelper(Context ctx) {
         //default constructor
+
+        super(ctx, Constants.DBNAME, null, 1);
         try {
+
 
             Log.d(Constants.CUSTOM_LOG_TYPE, "External Storage state ->" + isExternalStorageWritable());
             //create directory CSE535_ASSIGNMENT2 if it doesn't exist already
@@ -83,9 +114,11 @@ public class DBHelper {
     }
 
 
-    public void createTableWhenConditionsMet(String name){
+    public void createTableWhenConditionsMet1(String name){
 
         try {
+            //in case db is set to null;
+            db = this.getDBInstance();
 
             db.beginTransaction();
             db.execSQL("CREATE TABLE IF NOT EXISTS "
@@ -103,37 +136,7 @@ public class DBHelper {
 
     }
 
-
-    public void insertInTable(float x, float y, float z){
-        try{
-            String datetimeTimeStamp;
-            SimpleDateFormat dateFormat = new SimpleDateFormat(
-                    "yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-            Date date = new Date();
-            datetimeTimeStamp = dateFormat.format(date);
-            String query="INSERT INTO "+ DBHelper.tableName+"(timestamp, x, y, z) VALUES( '"+datetimeTimeStamp+"',"+String.valueOf(x)+","+String.valueOf(y)+","+String.valueOf(z)+")";
-            Log.d(Constants.CUSTOM_LOG_TYPE, query);
-            db.execSQL(query);
-        }
-        catch (Exception e){
-            Log.v("Error in insert", e.toString());
-        }
-    }
-
-
-    public void switchToDownloadDB(){
-
-
-        //download location
-        String downloadLoc = Environment.getExternalStorageDirectory() + File.separator +
-                Constants.DB_DIRECTORY_NAME_DOWNLOAD + File.separator + Constants.DBNAME;
-
-        db = SQLiteDatabase.openOrCreateDatabase(downloadLoc, null);
-
-
-    }
-
-    public void createTable(String tableName){
+    public void createTableWhenConditionsMet(String tableName){
         //tableName = "testtable";
         Log.d(Constants.CUSTOM_LOG_TYPE, "createTable called with table name -->" +tableName);
 
@@ -142,10 +145,10 @@ public class DBHelper {
 
             String query = "create table " +  tableName + " ("
                     + " recID integer PRIMARY KEY autoincrement, "
-                    + " x_val long, "
-                    + " y_val long,"
-                    + " z_val long,"
-                    + " timestamp varchar(10)); ";
+                    + " x_val real, "
+                    + " y_val real,"
+                    + " z_val real,"
+                    + " timestamp integer); ";
 
             Log.d(Constants.CUSTOM_LOG_TYPE, "QUERY->" +query);
             //perform your database operations here ...
@@ -157,7 +160,7 @@ public class DBHelper {
         catch (SQLiteException e) {
             //report problem
 
-            /*Some propmt ???*/
+            //Some propmt ???/
             Log.e("ERROR", "Some error");
             e.printStackTrace();
 
@@ -173,10 +176,31 @@ public class DBHelper {
 
     }
 
-    public void insert(float x, float y, float z, long timestamp){
+
+    public void insertInTable1(float x, float y, float z, long timestamp){
+        try{
+
+            db = this.getDBInstance();
+            String query="INSERT INTO "+ DBHelper.tableName+"(timestamp, x, y, z) VALUES( '"+String.valueOf(timestamp)+"',"+
+                    String.valueOf(x)+","+String.valueOf(y)+","+String.valueOf(z)+")";
+            Log.d(Constants.CUSTOM_LOG_TYPE, query);
+            db.execSQL(query);
+        }
+        catch (Exception e){
+            Log.d(Constants.CUSTOM_LOG_TYPE, e.toString());
+        }
+    }
+
+    public void insertInTable(float x, float y, float z){
 
         try {
             //perform your database operations here ...
+            String datetimeTimeStamp;
+            SimpleDateFormat dateFormat = new SimpleDateFormat(
+                    "yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+            Date date = new Date();
+            String timestamp = dateFormat.format(date);
+
             ContentValues values = new ContentValues();
             values.put("x_val", x);
             values.put("y_val", y);
@@ -199,6 +223,42 @@ public class DBHelper {
         }
     }
 
+    public void setTableName(){
+
+        Cursor cur = db.rawQuery("SELECT name FROM SQLITE_MASTER WHERE type='table'", null);
+        ArrayList temp = new ArrayList();
+        if (cur != null) {
+            if (cur.moveToFirst()) {
+                do {
+                    String table_name = cur.getString(cur.getColumnIndex("name"));
+
+                    //check data in table
+                    Log.d(Constants.CUSTOM_LOG_TYPE, "table_name->" +table_name);
+
+                } while (cur.moveToNext());
+            }else{
+                Log.d(Constants.CUSTOM_LOG_TYPE, "Cursor was empty!!!");
+            }
+        }else{
+            Log.d(Constants.CUSTOM_LOG_TYPE, "Cursor was null!!!");
+        }
+
+    }
+
+    public void switchToDownloadDB(){
+
+
+        //download location
+        Log.d(Constants.CUSTOM_LOG_TYPE, " DB being switched!!");
+        String downloadLoc = Environment.getExternalStorageDirectory() + File.separator +
+                Constants.DB_DIRECTORY_NAME_DOWNLOAD + File.separator + Constants.DBNAME;
+
+        db = SQLiteDatabase.openOrCreateDatabase(downloadLoc, null);
+        setTableName();
+
+    }
+
+
     /* Checks if external storage is available for read and write */
     public boolean isExternalStorageWritable() {
         String state = Environment.getExternalStorageState();
@@ -208,36 +268,49 @@ public class DBHelper {
         return false;
     }
 
-    public List<Float> fetchDataList(){
+    public List<List<Float>> fetchDataList(){
 
-        Log.d(Constants.CUSTOM_LOG_TYPE, "fetch data function called");
-        Cursor cur = db.rawQuery("SELECT * FROM " + DBHelper.tableName, null);
-        ArrayList temp = new ArrayList();
+        Log.d(Constants.CUSTOM_LOG_TYPE, "fetch data function called with table name ::" +tableName);
+        Cursor cur = db.rawQuery("SELECT * FROM " + tableName, null);
+        List<Float> xList = new ArrayList();
+        List<Float> yList = new ArrayList();
+        List<Float> zList = new ArrayList();
+        List<List<Float>> xyzList = new ArrayList<>();
         if (cur != null) {
             if (cur.moveToFirst()) {
                 do {
-                    String timestamp = cur.getString(cur.getColumnIndex("x_val"));
-                    Log.d(Constants.CUSTOM_LOG_TYPE, "x values->" +timestamp);
-                    temp.add(timestamp);
+                    String xVal = cur.getString(0);
+                    String yVal = cur.getString(1);
+                    String zVal = cur.getString(2);
+                    //Log.d(Constants.CUSTOM_LOG_TYPE, "x value->" +xVal + " y value->" +yVal + " z value->" +zVal);
+
+                    xList.add(Float.valueOf(xVal));
+                    yList.add(Float.valueOf(yVal));
+                    zList.add(Float.valueOf(zVal));
                 } while (cur.moveToNext());
             }
         }
 
-        Log.d(Constants.CUSTOM_LOG_TYPE, "number of rows fetched-->" + temp.size());
-        return temp;
+        //close cursor
+        cur.close();
+        cur = null;
+
+
+        xyzList.add(xList);
+        xyzList.add(yList);
+        xyzList.add(zList);
+        Log.d(Constants.CUSTOM_LOG_TYPE, "number of rows fetched-->" + xList.size());
+        return xyzList;
     }
 
-    public Cursor fetchData(){
+    public void closeDB(){
+        //this.db.close();
+        //this.db = null;
+    }
 
-        Log.d(Constants.CUSTOM_LOG_TYPE, "fetch data function called on table name ->" + tableName);
-
-        try {
-            Cursor cur = db.rawQuery("SELECT * FROM " + DBHelper.tableName, null);
-            return cur;
-        }catch(Exception ex){
-            ex.printStackTrace();
-            Log.d(Constants.CUSTOM_LOG_TYPE, ex.getMessage());
-        }
-        return null;
+    @Override
+    public void finalize() throws Throwable {
+        this.close();
+        super.finalize();
     }
 }

@@ -19,7 +19,7 @@ public class Constants {
 
     public static String DB_DIRECTORY_NAME = "CSE535_ASSIGNMENT2";
     public static String DB_DIRECTORY_NAME_DOWNLOAD = "CSE535_ASSIGNMENT2_Extra";
-    public static String DBNAME = "group7";
+    public static String DBNAME = "test1";
 
     public static String DELIMITER = "_";
 
@@ -59,7 +59,7 @@ public class Constants {
     public static String uploadServerUri = "http://10.143.3.163:3030/upload";*/
 
     //local apache php server
-    public static String UPLOAD_SERVER_FOLDER = "http://192.168.0.15/uploads/";
+    public static String UPLOAD_SERVER_FOLDER = "http://192.168.0.15/uploads";
     public static String UPLOAD_SERVER_URI= "http://192.168.0.15/upload.php";
     //public static String uploadServerUri = "http://10.143.3.163:3030/upload";
 

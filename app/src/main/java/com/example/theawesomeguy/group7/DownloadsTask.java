@@ -1,6 +1,9 @@
 package com.example.theawesomeguy.group7;
 
+import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Environment;
+import android.os.PowerManager;
 import android.util.Log;
 
 import java.io.File;
@@ -9,11 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
-import java.nio.channels.ReadableByteChannel;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
@@ -28,23 +27,17 @@ import javax.net.ssl.X509TrustManager;
  * Created by peps on 6/19/17.
  */
 
-public class DownloadsHelper {
+public class DownloadsTask extends AsyncTask<String, Integer, String>{
 
-    private static DownloadsHelper downloadsHelper = null;
 
-    private DownloadsHelper(){
-        //private default constructor
+    private Context context;
+    private PowerManager.WakeLock mWakeLock;
+
+    public DownloadsTask(Context context) {
+        this.context = context;
     }
-
-    public static DownloadsHelper getInstance(){
-        if (downloadsHelper == null){
-            downloadsHelper = new DownloadsHelper();
-        }
-        return downloadsHelper;
-    }
-
-    public void download(){
-
+    @Override
+    protected String doInBackground(String... sUrl) {
         //searchButton = (Button) findViewById(R.id.button1);
         InputStream input = null;
         OutputStream output = null;
@@ -77,40 +70,46 @@ public class DownloadsHelper {
             e.printStackTrace();
         }
         try {
-            URL url = new URL(Constants.UPLOAD_SERVER_FOLDER + File.separator + Constants.DBNAME);
-            Log.d("LOGGING", "url->" + url);
+            URL url = new URL(sUrl[0]);
+            Log.d("LOGGING", "url->" + sUrl[0]);
             connection = (HttpURLConnection) url.openConnection();
-
             connection.connect();
 
-            // expect HTTP 200 OK, so we don't mistakenly save error report
-            // instead of the file
-            Log.d("", " Server returned HTTP " + connection.getResponseCode()
-                    + " " + connection.getResponseMessage());
+            Log.d(Constants.CUSTOM_LOG_TYPE, "server code->" +connection.getResponseCode() + " " + connection.getResponseMessage());
+
+
+            dirCleanUp();
 
             // this will be useful to display download percentage
             // might be -1: server did not report the length
             int fileLength = connection.getContentLength();
-
+            Log.d(Constants.CUSTOM_LOG_TYPE, "fileLength->" +fileLength);
             //downloadButton.setText(Integer.toString(fileLength));
             // download the file
             input = connection.getInputStream();
-            output = new FileOutputStream(Environment.getExternalStorageDirectory() + File.separator + Constants.DB_DIRECTORY_NAME_DOWNLOAD +
-                    File.separator + Constants.DBNAME);
+            String downloadPath = Environment.getExternalStorageDirectory().getPath() + File.separator + Constants.DB_DIRECTORY_NAME_DOWNLOAD + File.separator +
+                    Constants.DBNAME;
+            Log.d(Constants.CUSTOM_LOG_TYPE, "download path->" +downloadPath);
+            //output = new FileOutputStream(Environment.getExternalStorageDirectory().getPath()+"/downloads/"+sUrl[1]);
+            output = new FileOutputStream(downloadPath);
             //downloadButton.setText("Connecting .....");
             byte data[] = new byte[4096];
             long total = 0;
             int count;
             while ((count = input.read(data)) != -1) {
                 // allow canceling with back button
-
+                if (isCancelled()) {
+                    input.close();
+                    return null;
+                }
                 total += count;
                 // publishing the progress....
-
+                if (fileLength > 0) // only if total length is known
+                    publishProgress((int) (total * 100 / fileLength));
                 output.write(data, 0, count);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            return e.toString();
         } finally {
             try {
                 if (output != null)
@@ -123,6 +122,17 @@ public class DownloadsHelper {
             if (connection != null)
                 connection.disconnect();
         }
+        return null;
+
 
     }
+
+    void dirCleanUp(){
+
+        File dir = new File(Environment.getExternalStorageDirectory().getPath() + File.separator + Constants.DB_DIRECTORY_NAME_DOWNLOAD);
+        for(File file: dir.listFiles())
+            if (!file.isDirectory())
+                file.delete();
+    }
+
 }

@@ -49,13 +49,15 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 
 import static com.example.theawesomeguy.group7.R.id.age;
 import static com.example.theawesomeguy.group7.R.id.graph;
+import static com.example.theawesomeguy.group7.R.id.time;
 
-public class Monitor extends AppCompatActivity {
+public class Monitor extends AppCompatActivity implements SensorEventListener{
 
     int running_state=0;
     private LineGraphSeries<DataPoint> series1;
@@ -69,6 +71,7 @@ public class Monitor extends AppCompatActivity {
     SQLiteDatabase myDB;
     int MY_PERMISSIONS_WRITE_EXTERNAL_STORAGE = 10;
     String maleOrFemale;
+    int isDBSwitched = 0;
 
 
     Button runBtn;
@@ -89,7 +92,6 @@ public class Monitor extends AppCompatActivity {
 
     DBHelper dbHelper;
     UploadsHelper uploadsHelper;
-    DownloadsHelper downloadsHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -155,6 +157,10 @@ public class Monitor extends AppCompatActivity {
         viewPort.setMaxX(5);
         viewPort.setScrollable(true);
 
+
+        mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+
         GridLabelRenderer gridLabel = graph.getGridLabelRenderer();
         gridLabel.setHorizontalAxisTitle("Time (in seconds)");
         gridLabel.setVerticalAxisTitle("Sensor value (in units)");
@@ -178,9 +184,13 @@ public class Monitor extends AppCompatActivity {
          * Write logic to pull last 10 sec data and plot it
          * Update above to read every second  -- Done by original series listener
          */
-        dbHelper = DBHelper.getInstance();
 
-        downloadsHelper = DownloadsHelper.getInstance();
+        //clear directory
+        //dirCleanUp();
+
+
+
+        dbHelper = DBHelper.getInstance(Monitor.this);
         uploadsHelper = UploadsHelper.getInstance();
 
         uploadsHelper.setUploadServerURI(Constants.UPLOAD_SERVER_URI);
@@ -220,24 +230,14 @@ public class Monitor extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                Toast.makeText(Monitor.this,  "Uploading file...", Toast.LENGTH_LONG).show();
+                Toast.makeText(Monitor.this,  "Downloading file...", Toast.LENGTH_LONG).show();
 
+                final DownloadsTask downloadTask2 = new DownloadsTask(Monitor.this);
+                //downloadTask2.execute("http://10.143.3.163/uploads/group9","group9");
+                downloadTask2.execute(Constants.UPLOAD_SERVER_FOLDER + File.separator + Constants.DBNAME,Constants.DBNAME);
 
-                new Thread(new Runnable() {
-                    public void run() {
-                        runOnUiThread(new Runnable() {
-                            public void run() {
-                                Log.d(Constants.CUSTOM_LOG_TYPE, "Upload started");
-                            }
-                        });
-
-                        downloadsHelper.download();
-
-                        //need to switch the database
-                        dbHelper.switchToDownloadDB();
-
-                    }
-                }).start();
+                dbHelper.switchToDownloadDB();
+                isDBSwitched = 1;
             }
         });
 
@@ -307,6 +307,8 @@ public class Monitor extends AppCompatActivity {
                 //produce.start();
                 /*start thread only if not in RUNNING state already*/
                 Log.d(Constants.CUSTOM_LOG_TYPE, "produce thread get state-->"+ produce.getState());
+
+                dbHelper.setTableName();
                 if (produce.getState() == Thread.State.NEW){
 
                     if(dbHelper.isTableSet()){
@@ -316,7 +318,7 @@ public class Monitor extends AppCompatActivity {
                         Snackbar.make(findViewById(android.R.id.content), "Plotting Graph.", Snackbar.LENGTH_LONG)
                                 .setActionTextColor(Color.RED)
                                 .show();
-                    }else{
+                    }else {
                         Snackbar.make(findViewById(android.R.id.content), "Cant plot graph.", Snackbar.LENGTH_LONG)
                                 .setActionTextColor(Color.RED)
                                 .show();
@@ -336,7 +338,7 @@ public class Monitor extends AppCompatActivity {
             public void onClick(View v) {
                 // TODO Auto-generated method stub
                 /***Do what you want with the click here***/
-                if(running_state==1){
+                if (running_state == 1) {
                     Log.d("THREAD", "stop onclick listener called...");
                     running_state = 0;
                     Log.d("THREAD", "thread about to be interrupted...");
@@ -351,6 +353,17 @@ public class Monitor extends AppCompatActivity {
                             .show();
 
                 }
+                mSensorManager.unregisterListener(Monitor.this);
+
+                dbHelper.closeDB();
+                try{
+                    dbHelper.finalize();
+                }catch(Throwable ex){
+                    ex.printStackTrace();
+                }
+
+                dbHelper.setTableName();
+
             }
         });
 
@@ -448,39 +461,45 @@ public class Monitor extends AppCompatActivity {
 
     }
 
+    void dirCleanUp(){
+
+        File dir = new File(Environment.getExternalStorageDirectory().getPath() + File.separator + Constants.DB_DIRECTORY_NAME);
+        for(File file: dir.listFiles())
+            if (!file.isDirectory())
+                file.delete();
+    }
+
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+
+
+        //Create the thread with 1 second pause
+        float x = event.values[0];
+        float y = event.values[1];
+        float z = event.values[2];
+
+        long timestamp = event.timestamp;
+
+        dbHelper.insertInTable(x,y,z);
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+        //Do nothing
+        //Log.d("Sensor changed", name.getText().toString());
+
+    }
 
 
     private void startAccService(){
 
         Log.d(Constants.CUSTOM_LOG_TYPE, "Starting Acclerometer service");
-        mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-
-        mSensorManager.registerListener(new SensorEventListener() {
-
-            // Use the accelerometer.
-            @Override
-            public void onSensorChanged(SensorEvent event) {
-
-
-                //Create the thread with 1 second pause
-                float x = event.values[0];
-                float y = event.values[1];
-                float z = event.values[2];
-
-                dbHelper.insertInTable(x,y,z);
-            }
-
-            @Override
-            public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
-                //Do nothing
-                //Log.d("Sensor changed", name.getText().toString());
-
-            }
-        }, mSensor, 1000000);
+        mSensorManager.registerListener(Monitor.this, mSensor, Constants.SENSOR_1HZ_DELAY);
 
     }
+
     private void showMessageOKCancel(String message, DialogInterface.OnClickListener okListener) {
         new AlertDialog.Builder(Monitor.this)
                 .setMessage(message)
@@ -493,43 +512,18 @@ public class Monitor extends AppCompatActivity {
     /*Code snippet from a tutorial for plotting graph*/
     private void addEntry(){
 
-        // get time right now
-
-        String datetimeTimeStamp;
-        SimpleDateFormat dateFormat = new SimpleDateFormat(
-                "yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-        Date date = new Date();
-        datetimeTimeStamp = dateFormat.format(date);
-
-        Date d1 = null;
-        Date d2 = null;
-
-        //Cursor c = myDB.rawQuery("SELECT * FROM "+ tableName , null);
-        Cursor c = dbHelper.fetchData();
-        if(c!=null){
-            if(c.moveToFirst()){
-                do{
-                    String datetime = c.getString(0);
-
-                    try{
-                        d1= dateFormat.parse(datetime); //from DB
-                        d2= dateFormat.parse(datetimeTimeStamp); //current date
-                    }
-                    catch (Exception e){
-                        Log.e("Date Time formatting", datetime);
-                    }
-                    if((d2.getTime() - d1.getTime())/1000 % 60 <=10)
-                        break;
-
-                }while (c.moveToNext());
-                Log.d(Constants.CUSTOM_LOG_TYPE, c.getString(0) + c.getString(1)+c.getString(2)+c.getString(3));
-            }
-
-            series1.appendData(new DataPoint(lastX++, Double.parseDouble(c.getString(1)) ), true, 10);
-            series2.appendData(new DataPoint(lastX++, Double.parseDouble(c.getString(2))), true, 10);
-            series3.appendData(new DataPoint(lastX++, Double.parseDouble(c.getString(3))), true, 10);
+        if(running_state==Constants.RUNNING_STATE_OFF){
+            return;
         }
 
+        //Cursor c = dbHelper.fetchData();
+        List<List<Float>> xyzList= dbHelper.fetchDataList();
+
+        for(int i=0;i<xyzList.get(0).size();i++){
+            series1.appendData(new DataPoint(lastX++, xyzList.get(0).get(i) ), true, 10);
+            series2.appendData(new DataPoint(lastX++, xyzList.get(1).get(i)), true, 10);
+            series3.appendData(new DataPoint(lastX++, xyzList.get(2).get(i)), true, 10);
+        }
     }
 
     @Override
@@ -552,11 +546,11 @@ public class Monitor extends AppCompatActivity {
                         try {
                             Thread.sleep(1000);
                         } catch (InterruptedException ex) {
-                            Log.d("THREAD", "thread interrupted from sleep!!-->" + ex.getMessage());
+                            Log.d(Constants.CUSTOM_LOG_TYPE, "thread interrupted from sleep!!-->" + ex.getMessage());
                         }
                     }
                 }catch(Exception ex){
-                    Log.d("THREAD", "Exception!-->" + ex.getMessage());
+                    Log.d(Constants.CUSTOM_LOG_TYPE, "Exception!-->" + ex.getMessage());
                 }
             }
         });
