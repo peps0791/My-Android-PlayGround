@@ -14,6 +14,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.Handler;
 import android.provider.ContactsContract;
@@ -47,11 +48,22 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
+
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import static com.example.theawesomeguy.group7.R.id.age;
 import static com.example.theawesomeguy.group7.R.id.graph;
@@ -234,10 +246,14 @@ public class Monitor extends AppCompatActivity implements SensorEventListener{
 
                 final DownloadsTask downloadTask2 = new DownloadsTask(Monitor.this);
                 //downloadTask2.execute("http://10.143.3.163/uploads/group9","group9");
-                downloadTask2.execute(Constants.UPLOAD_SERVER_FOLDER + File.separator + Constants.DBNAME,Constants.DBNAME);
+                try {
+                    downloadTask2.execute(Constants.UPLOAD_SERVER_FOLDER + File.separator + Constants.DBNAME, Constants.DBNAME);
 
-                dbHelper.switchToDownloadDB();
-                isDBSwitched = 1;
+                }catch(Exception ex){
+                    ex.printStackTrace();
+                }
+
+
             }
         });
 
@@ -463,10 +479,10 @@ public class Monitor extends AppCompatActivity implements SensorEventListener{
 
     void dirCleanUp(){
 
-        File dir = new File(Environment.getExternalStorageDirectory().getPath() + File.separator + Constants.DB_DIRECTORY_NAME);
+        /*File dir = new File(Environment.getExternalStorageDirectory().getPath() + File.separator + Constants.DB_DIRECTORY_NAME);
         for(File file: dir.listFiles())
             if (!file.isDirectory())
-                file.delete();
+                file.delete();*/
     }
 
 
@@ -525,6 +541,134 @@ public class Monitor extends AppCompatActivity implements SensorEventListener{
             series3.appendData(new DataPoint(lastX++, xyzList.get(2).get(i)), true, 10);
         }
     }
+
+
+    private class DownloadsTask extends AsyncTask<String, Integer, String> {
+
+
+        private Context context;
+        //private PowerManager.WakeLock mWakeLock;
+
+        public DownloadsTask(Context context) {
+            this.context = context;
+        }
+
+        @Override
+        protected String doInBackground(String... sUrl) {
+            //searchButton = (Button) findViewById(R.id.button1);
+            InputStream input = null;
+            OutputStream output = null;
+            HttpURLConnection connection = null;
+            TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
+                public X509Certificate[] getAcceptedIssuers() {
+                    return null;
+                }
+
+                @Override
+                public void checkClientTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {
+                    // Not implemented
+                }
+
+                @Override
+                public void checkServerTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {
+                    // Not implemented
+                }
+            }};
+
+            try {
+                SSLContext sc = SSLContext.getInstance("TLS");
+
+                sc.init(null, trustAllCerts, new java.security.SecureRandom());
+
+                HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+            } catch (KeyManagementException e) {
+                e.printStackTrace();
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            }
+            try {
+                URL url = new URL(sUrl[0]);
+                Log.d("LOGGING", "url->" + sUrl[0]);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.connect();
+
+                Log.d(Constants.CUSTOM_LOG_TYPE, "server code->" + connection.getResponseCode() + " " + connection.getResponseMessage());
+
+
+                dirCleanUp();
+
+                // this will be useful to display download percentage
+                // might be -1: server did not report the length
+                int fileLength = connection.getContentLength();
+                Log.d(Constants.CUSTOM_LOG_TYPE, "fileLength->" + fileLength);
+                //downloadButton.setText(Integer.toString(fileLength));
+                // download the file
+                input = connection.getInputStream();
+                String downloadPath = Environment.getExternalStorageDirectory().getPath() + File.separator + Constants.DB_DIRECTORY_NAME_DOWNLOAD + File.separator +
+                        Constants.DBNAME;
+                Log.d(Constants.CUSTOM_LOG_TYPE, "download path->" + downloadPath);
+                //output = new FileOutputStream(Environment.getExternalStorageDirectory().getPath()+"/downloads/"+sUrl[1]);
+                output = new FileOutputStream(downloadPath);
+                //downloadButton.setText("Connecting .....");
+                byte data[] = new byte[4096];
+                long total = 0;
+                int count;
+                while ((count = input.read(data)) != -1) {
+                    // allow canceling with back button
+                    if (isCancelled()) {
+                        input.close();
+                        return null;
+                    }
+                    total += count;
+                    // publishing the progress....
+                    if (fileLength > 0) // only if total length is known
+                        publishProgress((int) (total * 100 / fileLength));
+                    output.write(data, 0, count);
+                }
+            } catch (Exception e) {
+                return e.toString();
+            } finally {
+                try {
+                    if (output != null)
+                        output.close();
+                    if (input != null)
+                        input.close();
+                } catch (IOException ignored) {
+                }
+
+                if (connection != null)
+                    connection.disconnect();
+            }
+            return null;
+
+
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... progress) {
+            super.onProgressUpdate(progress);
+            // if we get here, length is known, now set indeterminate to false
+        }
+
+        @Override
+        public void onPostExecute(String result) {
+            //mWakeLock.release();
+            if (result != null) {
+                Toast.makeText(context, "Download error: " + result, Toast.LENGTH_LONG).show();
+
+
+            } else {
+                Toast.makeText(context, "File downloaded", Toast.LENGTH_SHORT).show();
+                Log.d(Constants.CUSTOM_LOG_TYPE, "File downloaded");
+
+                Log.d(Constants.CUSTOM_LOG_TYPE, "result" + result);
+                dbHelper.switchToDownloadDB();
+                isDBSwitched = 1;
+
+            }
+        }
+    }
+
 
     @Override
     protected void onResume() {
