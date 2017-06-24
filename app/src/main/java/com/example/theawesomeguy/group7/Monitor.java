@@ -72,9 +72,9 @@ import static com.example.theawesomeguy.group7.R.id.age;
 import static com.example.theawesomeguy.group7.R.id.graph;
 import static com.example.theawesomeguy.group7.R.id.time;
 
-public class Monitor extends AppCompatActivity implements SensorEventListener{
+public class Monitor extends AppCompatActivity implements SensorEventListener {
 
-    int running_state=0;
+    int running_state = 0;
     private LineGraphSeries<DataPoint> series1;
     private LineGraphSeries<DataPoint> series2;
     private LineGraphSeries<DataPoint> series3;
@@ -91,17 +91,17 @@ public class Monitor extends AppCompatActivity implements SensorEventListener{
 
 
     Button runBtn;
-    Button stopBtn ;
+    Button stopBtn;
     RadioButton maleRadioBtn;
-    RadioButton femaleRadioBtn ;
+    RadioButton femaleRadioBtn;
     Button uploadBtn;
     Button downloadBtn;
     EditText nameField;
-    EditText idField ;
+    EditText idField;
     EditText ageField;
     RadioGroup gender;
 
-    int lastTimedigit=-1;
+    int lastTimedigit = -1;
 
 
     private SensorManager mSensorManager;
@@ -157,8 +157,8 @@ public class Monitor extends AppCompatActivity implements SensorEventListener{
         /*UI component classes*/
         Button runBtn = (Button) findViewById(R.id.Run);
         Button stopBtn = (Button) findViewById(R.id.Stop);
-        uploadBtn =  (Button) findViewById(R.id.Upload);
-        downloadBtn =  (Button) findViewById(R.id.Download);
+        uploadBtn = (Button) findViewById(R.id.Upload);
+        downloadBtn = (Button) findViewById(R.id.Download);
         RadioButton maleRadioBtn = (RadioButton) findViewById(R.id.radioButton2);
         RadioButton femaleRadioBtn = (RadioButton) findViewById(R.id.radioButton3);
         nameField = (EditText) findViewById(R.id.editText2);
@@ -207,7 +207,6 @@ public class Monitor extends AppCompatActivity implements SensorEventListener{
         //dirCleanUp();
 
 
-
         dbHelper = DBHelper.getInstance(Monitor.this);
         uploadsHelper = UploadsHelper.getInstance();
 
@@ -220,18 +219,17 @@ public class Monitor extends AppCompatActivity implements SensorEventListener{
             @Override
             public void onCheckedChanged(RadioGroup group, @IdRes int checkedId) {
 
-                if( nameField.getText()!=null && ageField.getText()!= null && idField.getText()!=null){
+                if (nameField.getText() != null && ageField.getText() != null && idField.getText() != null) {
 
                     //gender has been selected, do your thing
-                    if (gender.getCheckedRadioButtonId()==0){
-                        maleOrFemale="f";
-                    }
-                    else {
-                        maleOrFemale="m";
+                    if (gender.getCheckedRadioButtonId() == 0) {
+                        maleOrFemale = "f";
+                    } else {
+                        maleOrFemale = "m";
                     }
 
 
-                    if(areFieldsNotEmpty() && areFieldsValid()){
+                    if (areFieldsNotEmpty() && areFieldsValid()) {
                         //Step 3, Create Table, Stop Validation Listener
                         createTable();
                         gender.setOnCheckedChangeListener(null);
@@ -248,14 +246,14 @@ public class Monitor extends AppCompatActivity implements SensorEventListener{
             @Override
             public void onClick(View v) {
 
-                Toast.makeText(Monitor.this,  "Downloading file...", Toast.LENGTH_LONG).show();
+                Toast.makeText(Monitor.this, "Downloading file...", Toast.LENGTH_LONG).show();
 
                 final DownloadsTask downloadTask2 = new DownloadsTask(Monitor.this);
                 //downloadTask2.execute("http://10.143.3.163/uploads/group9","group9");
                 try {
                     downloadTask2.execute(Constants.UPLOAD_SERVER_FOLDER + File.separator + Constants.DBNAME, Constants.DBNAME);
 
-                }catch(Exception ex){
+                } catch (Exception ex) {
                     ex.printStackTrace();
                 }
 
@@ -268,7 +266,7 @@ public class Monitor extends AppCompatActivity implements SensorEventListener{
             @Override
             public void onClick(View v) {
 
-                Toast.makeText(Monitor.this,  "Uploading file...", Toast.LENGTH_LONG).show();
+                Toast.makeText(Monitor.this, "Uploading file...", Toast.LENGTH_LONG).show();
 
 
                 new Thread(new Runnable() {
@@ -280,6 +278,18 @@ public class Monitor extends AppCompatActivity implements SensorEventListener{
                         });
 
                         uploadsHelper.uploadFile();
+                        mSensorManager.unregisterListener(Monitor.this);
+
+                        dbHelper.closeDB();
+                        try {
+                            dbHelper.finalize();
+                        } catch (Throwable ex) {
+                            ex.printStackTrace();
+                        }
+
+                        dbHelper.setTableName();
+                        lastTimestamp = 0;
+
 
                     }
                 }).start();
@@ -293,7 +303,7 @@ public class Monitor extends AppCompatActivity implements SensorEventListener{
 
         /*listener for run button*/
         /*own code*/
-        runBtn.setOnClickListener( new View.OnClickListener() {
+        runBtn.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
@@ -314,12 +324,12 @@ public class Monitor extends AppCompatActivity implements SensorEventListener{
                 graph.addSeries(series2);
                 graph.addSeries(series3);
 
-                if (running_state ==0){
+                if (running_state == 0) {
                     Log.d(Constants.CUSTOM_LOG_TYPE, "run onclick listener called...");
                     running_state = 1;
 
 
-                }else{
+                } else {
                     running_state = 1;
                     //produce.stop();
                     Log.d(Constants.CUSTOM_LOG_TYPE, "run onclick listener called again called...");
@@ -328,19 +338,19 @@ public class Monitor extends AppCompatActivity implements SensorEventListener{
 
                 //produce.start();
                 /*start thread only if not in RUNNING state already*/
-                Log.d(Constants.CUSTOM_LOG_TYPE, "produce thread get state-->"+ produce.getState());
+                Log.d(Constants.CUSTOM_LOG_TYPE, "produce thread get state-->" + produce.getState());
 
                 dbHelper.setTableName();
-                if (produce.getState() == Thread.State.NEW){
+                if (produce.getState() == Thread.State.NEW) {
 
-                    if(dbHelper.isTableSet()){
+                    if (dbHelper.isTableSet()) {
                         Log.d(Constants.CUSTOM_LOG_TYPE, "Starting new thread");
                         produce.start();
 
                         Snackbar.make(findViewById(android.R.id.content), "Plotting Graph.", Snackbar.LENGTH_LONG)
                                 .setActionTextColor(Color.RED)
                                 .show();
-                    }else {
+                    } else {
                         Snackbar.make(findViewById(android.R.id.content), "Cant plot graph.", Snackbar.LENGTH_LONG)
                                 .setActionTextColor(Color.RED)
                                 .show();
@@ -354,7 +364,7 @@ public class Monitor extends AppCompatActivity implements SensorEventListener{
 
         /*listener for stop button*/
         /*own code*/
-        stopBtn.setOnClickListener( new View.OnClickListener() {
+        stopBtn.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
@@ -375,7 +385,9 @@ public class Monitor extends AppCompatActivity implements SensorEventListener{
                             .show();
 
                 }
-                mSensorManager.unregisterListener(Monitor.this);
+
+
+                /*mSensorManager.unregisterListener(Monitor.this);
 
                 dbHelper.closeDB();
                 try{
@@ -384,7 +396,8 @@ public class Monitor extends AppCompatActivity implements SensorEventListener{
                     ex.printStackTrace();
                 }
 
-                dbHelper.setTableName();
+                dbHelper.setTableName();*/
+
 
             }
         });
@@ -393,17 +406,17 @@ public class Monitor extends AppCompatActivity implements SensorEventListener{
         nameField.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
-                if(!hasFocus){
+                if (!hasFocus) {
                     //check if the name is a text and not numeric
-                    if(!Misc.isFieldValid(nameField, Constants.NAME_TYPE)){
+                    if (!Misc.isFieldValid(nameField, Constants.NAME_TYPE)) {
                         Toast.makeText(Monitor.this, Constants.INVALID_NAME__ERROR, Toast.LENGTH_LONG).show();
                     }
 
-                    if(areFieldsNotEmpty() && areFieldsValid()) {
+                    if (areFieldsNotEmpty() && areFieldsValid()) {
                         createTable();
                         Toast.makeText(Monitor.this, Constants.DATA_OK_START_ACCMTR_MSG, Toast.LENGTH_LONG).show();
                         startAccService();
-                    }else{
+                    } else {
                         Log.d(Constants.CUSTOM_LOG_TYPE, Constants.DATA_NOT_OK_MSG);
                     }
                 }
@@ -413,17 +426,17 @@ public class Monitor extends AppCompatActivity implements SensorEventListener{
         ageField.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
-                if(!hasFocus){
+                if (!hasFocus) {
                     //check for texts in id, name and sex fields
-                    if(!Misc.isFieldValid(ageField, Constants.AGE_TYPE)){
+                    if (!Misc.isFieldValid(ageField, Constants.AGE_TYPE)) {
                         Toast.makeText(Monitor.this, Constants.INVALID_AGE__ERROR, Toast.LENGTH_LONG).show();
                     }
 
-                    if(areFieldsNotEmpty() && areFieldsValid()) {
+                    if (areFieldsNotEmpty() && areFieldsValid()) {
                         createTable();
                         Toast.makeText(Monitor.this, Constants.DATA_OK_START_ACCMTR_MSG, Toast.LENGTH_LONG).show();
                         startAccService();
-                    }else{
+                    } else {
                         Log.d(Constants.CUSTOM_LOG_TYPE, Constants.DATA_NOT_OK_MSG);
                     }
 
@@ -434,17 +447,17 @@ public class Monitor extends AppCompatActivity implements SensorEventListener{
         idField.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
-                if(!hasFocus){
+                if (!hasFocus) {
                     //check for texts in id, name and sex fields
-                    if(!Misc.isFieldValid(idField, Constants.ID_TYPE)){
+                    if (!Misc.isFieldValid(idField, Constants.ID_TYPE)) {
                         Toast.makeText(Monitor.this, Constants.INVALID_ID__ERROR, Toast.LENGTH_LONG).show();
                     }
 
-                    if(areFieldsNotEmpty() && areFieldsValid()) {
+                    if (areFieldsNotEmpty() && areFieldsValid()) {
                         createTable();
                         Toast.makeText(Monitor.this, Constants.DATA_OK_START_ACCMTR_MSG, Toast.LENGTH_LONG).show();
                         startAccService();
-                    }else{
+                    } else {
                         Log.d(Constants.CUSTOM_LOG_TYPE, Constants.DATA_NOT_OK_MSG);
                     }
 
@@ -454,36 +467,36 @@ public class Monitor extends AppCompatActivity implements SensorEventListener{
     }
 
 
-    private boolean areFieldsValid(){
-        return( Misc.isFieldValid(nameField, Constants.NAME_TYPE) &&
+    private boolean areFieldsValid() {
+        return (Misc.isFieldValid(nameField, Constants.NAME_TYPE) &&
                 Misc.isFieldValid(ageField, Constants.AGE_TYPE) &&
                 Misc.isFieldValid(idField, Constants.ID_TYPE));
     }
 
 
     /*code snippet to check if the age, name, sex and id fields are empty or not*/
-    private boolean areFieldsNotEmpty(){
-        return (ageField!=null && !ageField.getText().toString().isEmpty() &&
-                idField!=null && !idField.getText().toString().isEmpty() &&
-                nameField!=null && !nameField.getText().toString().isEmpty() &&
-                gender.getCheckedRadioButtonId()!=-1);
+    private boolean areFieldsNotEmpty() {
+        return (ageField != null && !ageField.getText().toString().isEmpty() &&
+                idField != null && !idField.getText().toString().isEmpty() &&
+                nameField != null && !nameField.getText().toString().isEmpty() &&
+                gender.getCheckedRadioButtonId() != -1);
     }
 
-    private void createTable(){
+    private void createTable() {
 
         Log.d(Constants.CUSTOM_LOG_TYPE, "Creating DB table.");
         String age = ageField.getText().toString();
         String id = idField.getText().toString();
         String name = nameField.getText().toString();
 
-        String table_name = name + Constants.DELIMITER + id + Constants.DELIMITER  +age + Constants.DELIMITER + maleOrFemale;
+        String table_name = name + Constants.DELIMITER + id + Constants.DELIMITER + age + Constants.DELIMITER + maleOrFemale;
 
         //dbHelper.createTable(table_name);
         dbHelper.createTableWhenConditionsMet(table_name);
 
     }
 
-    void dirCleanUp(){
+    void dirCleanUp() {
 
         /*File dir = new File(Environment.getExternalStorageDirectory().getPath() + File.separator + Constants.DB_DIRECTORY_NAME);
         for(File file: dir.listFiles())
@@ -507,12 +520,12 @@ public class Monitor extends AppCompatActivity implements SensorEventListener{
                 + (timestamp - System.nanoTime()) / 1000000L;
 
         //Log.d(Constants.CUSTOM_LOG_TYPE, "time in millis-->" + (int)timeInMillis/1000);
-        timeInMillis /=1000;
-        String temp = String.valueOf((int)timeInMillis);
-        String lastDigit = temp.substring(temp.length()-1);
-        if(Integer.parseInt(lastDigit)!=lastTimedigit){
-            Log.d(Constants.CUSTOM_LOG_TYPE, "Inserting-->" + (int)timeInMillis);
-            dbHelper.insertInTable(x,y,z, (int)timeInMillis);
+        timeInMillis /= 1000;
+        String temp = String.valueOf((int) timeInMillis);
+        String lastDigit = temp.substring(temp.length() - 1);
+        if (Integer.parseInt(lastDigit) != lastTimedigit) {
+            Log.d(Constants.CUSTOM_LOG_TYPE, "Inserting-->" + (int) timeInMillis);
+            dbHelper.insertInTable(x, y, z, (int) timeInMillis);
         }
         lastTimedigit = Integer.parseInt(lastDigit);
 
@@ -528,7 +541,7 @@ public class Monitor extends AppCompatActivity implements SensorEventListener{
     }
 
 
-    private void startAccService(){
+    private void startAccService() {
 
         Log.d(Constants.CUSTOM_LOG_TYPE, "Starting Acclerometer service");
         mSensorManager.registerListener(Monitor.this, mSensor, Constants.SENSOR_1HZ_DELAY);
@@ -545,9 +558,9 @@ public class Monitor extends AppCompatActivity implements SensorEventListener{
     }
 
     /*Code snippet from a tutorial for plotting graph*/
-    private void addEntry(){
+    private void addEntry() {
 
-        if(running_state==Constants.RUNNING_STATE_OFF){
+        if (running_state == Constants.RUNNING_STATE_OFF) {
             return;
         }
 
@@ -555,20 +568,20 @@ public class Monitor extends AppCompatActivity implements SensorEventListener{
 
         List<List<Float>> xyzList = null;
         Map<Integer, List<List<Float>>> map = null;
-        if(lastTimestamp==0){
+        if (lastTimestamp == 0) {
             map = dbHelper.fetchDataList(lastTimestamp, 10);
-        }else{
+        } else {
             map = dbHelper.fetchDataList(lastTimestamp, 1);
         }
 
-        for(Map.Entry<Integer, List<List<Float>>>entry: map.entrySet()){
+        for (Map.Entry<Integer, List<List<Float>>> entry : map.entrySet()) {
             lastTimestamp = entry.getKey();
             xyzList = entry.getValue();
 
         }
 
-        for(int i=0;i<xyzList.get(0).size();i++){
-            series1.appendData(new DataPoint(lastX++, xyzList.get(0).get(i) ), true, 10);
+        for (int i = 0; i < xyzList.get(0).size(); i++) {
+            series1.appendData(new DataPoint(lastX++, xyzList.get(0).get(i)), true, 10);
             series2.appendData(new DataPoint(lastX++, xyzList.get(1).get(i)), true, 10);
             series3.appendData(new DataPoint(lastX++, xyzList.get(2).get(i)), true, 10);
         }
@@ -707,7 +720,7 @@ public class Monitor extends AppCompatActivity implements SensorEventListener{
             //mWakeLock.release();
             if (result != null) {
                 Toast.makeText(context, "Download error: " + result, Toast.LENGTH_LONG).show();
-                Log.d(Constants.CUSTOM_LOG_TYPE, "Download Error:" +result);
+                Log.d(Constants.CUSTOM_LOG_TYPE, "Download Error:" + result);
 
 
             } else {
@@ -718,39 +731,77 @@ public class Monitor extends AppCompatActivity implements SensorEventListener{
                 dbHelper.switchToDownloadDB();
                 isDBSwitched = 1;
 
+                //plot graph
+                //fetch 10 seconds data from db
+                graph.removeAllSeries();
+                series1 = new LineGraphSeries<>();
+                series2 = new LineGraphSeries<>();
+                series3 = new LineGraphSeries<>();
+
+
+
+
+                lastX=0;
+                Map<Integer, List<List<Float>>> map = null;
+                List<List<Float>> xyzList = null;
+                for (int i = 0; i < 10; i++) {
+                    map = dbHelper.fetchDataList(lastTimestamp, 1);
+
+                    for (Map.Entry<Integer, List<List<Float>>> entry : map.entrySet()) {
+                        lastTimestamp = entry.getKey();
+                        xyzList = entry.getValue();
+                    }
+
+                    Log.d(Constants.CUSTOM_LOG_TYPE, "list sizes->" +xyzList.get(0).size() +
+                            " ,  " + xyzList.get(1).size() + " ," + xyzList.get(2).size() +
+                    "value of i-->" + i);
+                    series1.appendData(new DataPoint(lastX++, xyzList.get(0).get(0)), true, 10);
+                    series2.appendData(new DataPoint(lastX++, xyzList.get(1).get(0)), true, 10);
+                    series3.appendData(new DataPoint(lastX++, xyzList.get(2).get(0)), true, 10);
+
+
+                }
+
+
+                graph.addSeries(series1);
+                graph.addSeries(series2);
+                graph.addSeries(series3);
+
             }
         }
+
     }
 
 
-    @Override
-    protected void onResume() {
+        @Override
+        protected void onResume() {
 
-        super.onResume();
+            super.onResume();
 
         /*code snippet from a tutorial for plotting graph*/
-        produce = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    for (int i = 0;; i++) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                addEntry();
+            produce = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        for (int i = 0; ; i++) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    addEntry();
+                                }
+                            });
+                            try {
+                                Thread.sleep(1000);
+                            } catch (InterruptedException ex) {
+                                Log.d(Constants.CUSTOM_LOG_TYPE, "thread interrupted from sleep!!-->" + ex.getMessage());
                             }
-                        });
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException ex) {
-                            Log.d(Constants.CUSTOM_LOG_TYPE, "thread interrupted from sleep!!-->" + ex.getMessage());
                         }
+                    } catch (Exception ex) {
+                        Log.d(Constants.CUSTOM_LOG_TYPE, "Exception!-->" + ex.getMessage());
                     }
-                }catch(Exception ex){
-                    Log.d(Constants.CUSTOM_LOG_TYPE, "Exception!-->" + ex.getMessage());
                 }
-            }
-        });
-    }
+            });
+        }
+
 
 }
