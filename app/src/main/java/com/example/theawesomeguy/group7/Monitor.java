@@ -58,7 +58,10 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Random;
+import java.util.Timer;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
@@ -84,6 +87,7 @@ public class Monitor extends AppCompatActivity implements SensorEventListener{
     int MY_PERMISSIONS_WRITE_EXTERNAL_STORAGE = 10;
     String maleOrFemale;
     int isDBSwitched = 0;
+    int lastTimestamp = 0;
 
 
     Button runBtn;
@@ -96,6 +100,8 @@ public class Monitor extends AppCompatActivity implements SensorEventListener{
     EditText idField ;
     EditText ageField;
     RadioGroup gender;
+
+    int lastTimedigit=-1;
 
 
     private SensorManager mSensorManager;
@@ -497,7 +503,20 @@ public class Monitor extends AppCompatActivity implements SensorEventListener{
 
         long timestamp = event.timestamp;
 
-        dbHelper.insertInTable(x,y,z);
+        long timeInMillis = (new Date()).getTime()
+                + (timestamp - System.nanoTime()) / 1000000L;
+
+        //Log.d(Constants.CUSTOM_LOG_TYPE, "time in millis-->" + (int)timeInMillis/1000);
+        timeInMillis /=1000;
+        String temp = String.valueOf((int)timeInMillis);
+        String lastDigit = temp.substring(temp.length()-1);
+        if(Integer.parseInt(lastDigit)!=lastTimedigit){
+            Log.d(Constants.CUSTOM_LOG_TYPE, "Inserting-->" + (int)timeInMillis);
+            dbHelper.insertInTable(x,y,z, (int)timeInMillis);
+        }
+        lastTimedigit = Integer.parseInt(lastDigit);
+
+
     }
 
     @Override
@@ -533,7 +552,20 @@ public class Monitor extends AppCompatActivity implements SensorEventListener{
         }
 
         //Cursor c = dbHelper.fetchData();
-        List<List<Float>> xyzList= dbHelper.fetchDataList();
+
+        List<List<Float>> xyzList = null;
+        Map<Integer, List<List<Float>>> map = null;
+        if(lastTimestamp==0){
+            map = dbHelper.fetchDataList(lastTimestamp, 10);
+        }else{
+            map = dbHelper.fetchDataList(lastTimestamp, 1);
+        }
+
+        for(Map.Entry<Integer, List<List<Float>>>entry: map.entrySet()){
+            lastTimestamp = entry.getKey();
+            xyzList = entry.getValue();
+
+        }
 
         for(int i=0;i<xyzList.get(0).size();i++){
             series1.appendData(new DataPoint(lastX++, xyzList.get(0).get(i) ), true, 10);
@@ -651,10 +683,31 @@ public class Monitor extends AppCompatActivity implements SensorEventListener{
         }
 
         @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+
+            //make sure the download directory exists
+
+            String downloadPathStr = Environment.getExternalStorageDirectory() + File.separator + Constants.DB_DIRECTORY_NAME_DOWNLOAD;
+            Log.d(Constants.CUSTOM_LOG_TYPE, "downloadPath-->" + downloadPathStr);
+            File downloadPath = new File(downloadPathStr);
+
+            if (downloadPath.exists() && downloadPath.isDirectory()) {
+                Log.d(Constants.CUSTOM_LOG_TYPE, "db download directory already exists");
+            } else {
+                Log.d(Constants.CUSTOM_LOG_TYPE, "Creating  DB download directory");
+                boolean dirCreated = downloadPath.mkdirs();
+
+                Log.d(Constants.CUSTOM_LOG_TYPE, "is directory created ?" + dirCreated);
+            }
+        }
+
+        @Override
         public void onPostExecute(String result) {
             //mWakeLock.release();
             if (result != null) {
                 Toast.makeText(context, "Download error: " + result, Toast.LENGTH_LONG).show();
+                Log.d(Constants.CUSTOM_LOG_TYPE, "Download Error:" +result);
 
 
             } else {

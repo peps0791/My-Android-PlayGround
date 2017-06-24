@@ -16,8 +16,10 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Created by peps on 6/17/17.
@@ -191,15 +193,15 @@ public class DBHelper extends SQLiteOpenHelper {
         }
     }
 
-    public void insertInTable(float x, float y, float z){
+    public void insertInTable(float x, float y, float z, int timestamp){
 
         try {
             //perform your database operations here ...
-            String datetimeTimeStamp;
+           /* String datetimeTimeStamp;
             SimpleDateFormat dateFormat = new SimpleDateFormat(
                     "yyyy-MM-dd HH:mm:ss", Locale.getDefault());
             Date date = new Date();
-            String timestamp = dateFormat.format(date);
+            String timestamp = dateFormat.format(date);*/
 
             ContentValues values = new ContentValues();
             values.put("x_val", x);
@@ -268,22 +270,31 @@ public class DBHelper extends SQLiteOpenHelper {
         return false;
     }
 
-    public List<List<Float>> fetchDataList(){
+    public Map<Integer, List<List<Float>>> fetchDataList(int timestamp, int limit){
 
         Log.d(Constants.CUSTOM_LOG_TYPE, "fetch data function called with table name ::" +tableName);
-        Cursor cur = db.rawQuery("SELECT * FROM " + tableName, null);
+        Cursor cur = db.rawQuery("SELECT * FROM " + tableName + " WHERE TIMESTAMP > " + String.valueOf(timestamp) + " ORDER BY TIMESTAMP DESC LIMIT " +
+                String.valueOf(limit), null);
         List<Float> xList = new ArrayList();
         List<Float> yList = new ArrayList();
         List<Float> zList = new ArrayList();
         List<List<Float>> xyzList = new ArrayList<>();
+        Map<Integer, List<List<Float>>> map= new HashMap<>();
+
+
+        int count = 0;
+        int lastTimeStamp =0;
         if (cur != null) {
             if (cur.moveToFirst()) {
                 do {
                     String xVal = cur.getString(0);
                     String yVal = cur.getString(1);
                     String zVal = cur.getString(2);
-                    //Log.d(Constants.CUSTOM_LOG_TYPE, "x value->" +xVal + " y value->" +yVal + " z value->" +zVal);
+                    if(count==0){
+                        lastTimeStamp = cur.getInt(3);
+                    }
 
+                    //Log.d(Constants.CUSTOM_LOG_TYPE, "x value->" +xVal + " y value->" +yVal + " z value->" +zVal);
                     xList.add(Float.valueOf(xVal));
                     yList.add(Float.valueOf(yVal));
                     zList.add(Float.valueOf(zVal));
@@ -295,12 +306,12 @@ public class DBHelper extends SQLiteOpenHelper {
         cur.close();
         cur = null;
 
-
         xyzList.add(xList);
         xyzList.add(yList);
         xyzList.add(zList);
+        map.put(lastTimeStamp, xyzList);
         Log.d(Constants.CUSTOM_LOG_TYPE, "number of rows fetched-->" + xList.size());
-        return xyzList;
+        return map;
     }
 
     public void closeDB(){
