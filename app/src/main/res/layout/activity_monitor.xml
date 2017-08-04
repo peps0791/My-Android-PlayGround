@@ -104,16 +104,32 @@
         android:layout_height="wrap_content"
         android:text="Run"
         android:layout_below="@+id/radioGroup"
-        android:layout_toEndOf="@+id/textView2" />
+        android:layout_alignStart="@+id/radioGroup" />
 
     <Button
         android:id="@+id/Stop"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Stop"
-        android:layout_alignBaseline="@+id/Run"
-        android:layout_alignBottom="@+id/Run"
-        android:layout_alignStart="@+id/age" />
+        android:layout_below="@+id/radioGroup"
+        android:layout_toStartOf="@+id/age" />
+
+    <Button
+        android:id="@+id/Upload"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Upload"
+        android:layout_below="@+id/radioGroup"
+        android:layout_toEndOf="@+id/Stop"
+        android:layout_marginStart="13dp" />
+
+    <Button
+        android:id="@+id/Download"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Download"
+        android:layout_below="@+id/Run"
+        android:layout_toEndOf="@+id/Run" />
 
     <com.jjoe64.graphview.GraphView
         android:id="@+id/graph"
@@ -124,7 +140,9 @@
         tools:layout_editor_absoluteX="16dp"
         tools:layout_editor_absoluteY="40dp"
         android:layout_alignBottom="@+id/gridLayout"
-        android:layout_alignParentStart="true" />
+        android:layout_toEndOf="@+id/Download"
+        android:layout_below="@+id/Download"
+        android:layout_alignStart="@+id/Run" />
 
     <TextView
         android:id="@+id/textView3"
