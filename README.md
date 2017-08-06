@@ -1,4 +1,4 @@
-# Android App for Course CSE-535 
+# Android App for CSE-535 (Mobile Computing) Course
 
 This Android app was created as part of class assignments for CSE-535 and now serves as a playground for the Android environment. 
 
